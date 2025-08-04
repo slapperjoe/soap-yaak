@@ -75,6 +75,27 @@ async function downloadWsdlAndImports(wsdlUrl, targetDir) {
     }
 }
 
+function zipDirectory(inputDir: string, outZip: string){
+  const output = fs.createWriteStream(outZip);
+    const archive = archiver('zip', {
+        zlib: { level: 9 } // Sets compression level
+    });
+
+    output.on('close', function() {
+        console.log(archive.pointer() + ' total bytes');
+        console.log('Archiver has been finalized and the output file descriptor has closed.');
+    });
+
+    archive.on('error', function(err) {
+        throw err;
+    });
+
+    archive.pipe(output);
+
+    archive.directory(inputDir, false); // 'false' means don't include the parent directory in the archive root
+    archive.finalize();
+}
+
 export const plugin: PluginDefinition = {
   importer: {
     name: "soapWSDLs",
@@ -96,8 +117,10 @@ export const plugin: PluginDefinition = {
             let urlData = await fetch(url);
             let urlText = await urlData.text();
             await downloadWsdlAndImports('url', `./downloaded_wsdls_${url}`);
+
+            zipDirectory(`./downloaded_wsdls_${url}/`, `${url}.zip`)
             // todo zip content in directory
-            const wsdls = await getJsonForWSDL(urlText);
+            const wsdls = await getJsonForWSDL(`${url}.zip`);
             const serviceData = getWSDLServices(wsdls);
 
             // Loop through all services
@@ -199,60 +222,60 @@ export const plugin: PluginDefinition = {
   },
 };
 
-// plugin.importer?.onImport({
-//   clipboard: {
-//     copyText: function (text: string): Promise<void> {
-//       throw new Error("Function not implemented.");
-//     }
-//   },
-//   toast: {
-//     show: function (args: ShowToastRequest): Promise<void> {
-//       throw new Error("Function not implemented.");
-//     }
-//   },
-//   prompt: {
-//     text: function (args: PromptTextRequest): Promise<PromptTextResponse["value"]> {
-//       throw new Error("Function not implemented.");
-//     }
-//   },
-//   store: {
-//     set: function <T>(key: string, value: T): Promise<void> {
-//       throw new Error("Function not implemented.");
-//     },
-//     get: function <T>(key: string): Promise<T | undefined> {
-//       throw new Error("Function not implemented.");
-//     },
-//     delete: function (key: string): Promise<boolean> {
-//       throw new Error("Function not implemented.");
-//     }
-//   },
-//   window: {
-//     openUrl: function (args: OpenWindowRequest & { onNavigate?: (args: { url: string; }) => void; onClose?: () => void; }): Promise<{ close: () => void; }> {
-//       throw new Error("Function not implemented.");
-//     }
-//   },
-//   httpRequest: {
-//     send: function (args: SendHttpRequestRequest): Promise<SendHttpRequestResponse["httpResponse"]> {
-//       throw new Error("Function not implemented.");
-//     },
-//     getById: function (args: GetHttpRequestByIdRequest): Promise<GetHttpRequestByIdResponse["httpRequest"]> {
-//       throw new Error("Function not implemented.");
-//     },
-//     render: function (args: RenderHttpRequestRequest): Promise<RenderHttpRequestResponse["httpRequest"]> {
-//       throw new Error("Function not implemented.");
-//     }
-//   },
-//   httpResponse: {
-//     find: function (args: FindHttpResponsesRequest): Promise<FindHttpResponsesResponse["httpResponses"]> {
-//       throw new Error("Function not implemented.");
-//     }
-//   },
-//   templates: {
-//     render: function (args: TemplateRenderRequest): Promise<TemplateRenderResponse["data"]> {
-//       throw new Error("Function not implemented.");
-//     }
-//   }
-// }, {text: `{
-//   "urls": ["http://www.dneonline.com/calculator.asmx?WSDL"],
-//   "name": "Demo Workspace"
-// }`});
+plugin.importer?.onImport({
+  clipboard: {
+    copyText: function (text: string): Promise<void> {
+      throw new Error("Function not implemented.");
+    }
+  },
+  toast: {
+    show: function (args: ShowToastRequest): Promise<void> {
+      throw new Error("Function not implemented.");
+    }
+  },
+  prompt: {
+    text: function (args: PromptTextRequest): Promise<PromptTextResponse["value"]> {
+      throw new Error("Function not implemented.");
+    }
+  },
+  store: {
+    set: function <T>(key: string, value: T): Promise<void> {
+      throw new Error("Function not implemented.");
+    },
+    get: function <T>(key: string): Promise<T | undefined> {
+      throw new Error("Function not implemented.");
+    },
+    delete: function (key: string): Promise<boolean> {
+      throw new Error("Function not implemented.");
+    }
+  },
+  window: {
+    openUrl: function (args: OpenWindowRequest & { onNavigate?: (args: { url: string; }) => void; onClose?: () => void; }): Promise<{ close: () => void; }> {
+      throw new Error("Function not implemented.");
+    }
+  },
+  httpRequest: {
+    send: function (args: SendHttpRequestRequest): Promise<SendHttpRequestResponse["httpResponse"]> {
+      throw new Error("Function not implemented.");
+    },
+    getById: function (args: GetHttpRequestByIdRequest): Promise<GetHttpRequestByIdResponse["httpRequest"]> {
+      throw new Error("Function not implemented.");
+    },
+    render: function (args: RenderHttpRequestRequest): Promise<RenderHttpRequestResponse["httpRequest"]> {
+      throw new Error("Function not implemented.");
+    }
+  },
+  httpResponse: {
+    find: function (args: FindHttpResponsesRequest): Promise<FindHttpResponsesResponse["httpResponses"]> {
+      throw new Error("Function not implemented.");
+    }
+  },
+  templates: {
+    render: function (args: TemplateRenderRequest): Promise<TemplateRenderResponse["data"]> {
+      throw new Error("Function not implemented.");
+    }
+  }
+}, {text: `{
+  "urls": ["http://www.dneonline.com/calculator.asmx?WSDL"],
+  "name": "Demo Workspace"
+}`});

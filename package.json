@@ -15,6 +15,7 @@
   "dependencies": {
     "@yaakapp/api": "^0.5.3",
     "apiconnect-wsdl": "^1.8.31",
+    "archiver": "^7.0.1",
     "axios": "^1.11.0",
     "fs": "^0.0.1-security",
     "jotai": "^2.12.5",
