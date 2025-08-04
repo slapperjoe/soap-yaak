@@ -30,7 +30,7 @@ import axios from "axios";
 import xml2js from 'xml2js';
 import fs from 'fs';
 import path from 'path';
-
+import archiver from "archiver"
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
 type RootFields = "name" | "id" | "model";
