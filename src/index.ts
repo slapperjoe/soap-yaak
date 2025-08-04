@@ -27,10 +27,10 @@ import {
 import { ImportPluginResponse } from "@yaakapp/api/lib/plugins/ImporterPlugin";
 
 import axios from "axios";
-import xml2js from 'xml2js';
-import fs from 'fs';
-import path from 'path';
-import archiver from "archiver" 
+import xml2js from "xml2js";
+import fs from "fs";
+import path from "path";
+import archiver from "archiver";
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
 type RootFields = "name" | "id" | "model";
@@ -42,58 +42,70 @@ interface ImportStructure {
 }
 
 async function downloadWsdlAndImports(wsdlUrl, targetDir) {
-    try {
-        const response = await axios.get(wsdlUrl);
-        const wsdlContent = response.data;
-        const fileName = path.basename(new URL(wsdlUrl).pathname);
-        fs.writeFileSync(path.join(targetDir, fileName), wsdlContent);
+  try {
+    const response = await axios.get(wsdlUrl);
+    const wsdlContent = response.data;
+    const fileName = path.basename(new URL(wsdlUrl).pathname);
+    fs.writeFileSync(path.join(targetDir, fileName), wsdlContent);
 
-        const parser = new xml2js.Parser();
-        const result = await parser.parseStringPromise(wsdlContent);
+    const parser = new xml2js.Parser();
+    const result = await parser.parseStringPromise(wsdlContent);
 
-        // Find and download WSDL imports
-        if (result['wsdl:definitions'] && result['wsdl:definitions']['wsdl:import']) {
-            for (const imp of result['wsdl:definitions']['wsdl:import']) {
-                const importLocation = imp['$'].location;
-                const importedUrl = new URL(importLocation, wsdlUrl).href;
-                await downloadWsdlAndImports(importedUrl, targetDir); // Recursive call
-            }
-        }
-
-        // Find and download XSD imports (within types section)
-        if (result['wsdl:definitions'] && result['wsdl:definitions']['wsdl:types'] && result['wsdl:definitions']['wsdl:types'][0]['xsd:schema'] && result['wsdl:definitions']['wsdl:types'][0]['xsd:schema'][0]['xsd:import']) {
-            for (const imp of result['wsdl:definitions']['wsdl:types'][0]['xsd:schema'][0]['xsd:import']) {
-                const schemaLocation = imp['$'].schemaLocation;
-                const importedUrl = new URL(schemaLocation, wsdlUrl).href;
-                await downloadWsdlAndImports(importedUrl, targetDir); // Recursive call
-            }
-        }
-
-        console.log(`Downloaded: ${wsdlUrl}`);
-    } catch (error) {
-        console.error(`Error downloading ${wsdlUrl}:`, error.message);
+    // Find and download WSDL imports
+    if (
+      result["wsdl:definitions"] &&
+      result["wsdl:definitions"]["wsdl:import"]
+    ) {
+      for (const imp of result["wsdl:definitions"]["wsdl:import"]) {
+        const importLocation = imp["$"].location;
+        const importedUrl = new URL(importLocation, wsdlUrl).href;
+        await downloadWsdlAndImports(importedUrl, targetDir); // Recursive call
+      }
     }
+
+    // Find and download XSD imports (within types section)
+    if (
+      result["wsdl:definitions"] &&
+      result["wsdl:definitions"]["wsdl:types"] &&
+      result["wsdl:definitions"]["wsdl:types"][0]["xsd:schema"] &&
+      result["wsdl:definitions"]["wsdl:types"][0]["xsd:schema"][0]["xsd:import"]
+    ) {
+      for (const imp of result["wsdl:definitions"]["wsdl:types"][0][
+        "xsd:schema"
+      ][0]["xsd:import"]) {
+        const schemaLocation = imp["$"].schemaLocation;
+        const importedUrl = new URL(schemaLocation, wsdlUrl).href;
+        await downloadWsdlAndImports(importedUrl, targetDir); // Recursive call
+      }
+    }
+
+    console.log(`Downloaded: ${wsdlUrl}`);
+  } catch (error) {
+    console.error(`Error downloading ${wsdlUrl}:`, error.message);
+  }
 }
 
-function zipDirectory(inputDir: string, outZip: string){
+function zipDirectory(inputDir: string, outZip: string) {
   const output = fs.createWriteStream(outZip);
-    const archive = archiver('zip', {
-        zlib: { level: 9 } // Sets compression level
-    });
+  const archive = archiver("zip", {
+    zlib: { level: 9 }, // Sets compression level
+  });
 
-    output.on('close', function() {
-        console.log(archive.pointer() + ' total bytes');
-        console.log('Archiver has been finalized and the output file descriptor has closed.');
-    });
+  output.on("close", function () {
+    console.log(archive.pointer() + " total bytes");
+    console.log(
+      "Archiver has been finalized and the output file descriptor has closed."
+    );
+  });
 
-    archive.on('error', function(err) {
-        throw err;
-    });
+  archive.on("error", function (err) {
+    throw err;
+  });
 
-    archive.pipe(output);
+  archive.pipe(output);
 
-    archive.directory(inputDir, false); // 'false' means don't include the parent directory in the archive root
-    archive.finalize();
+  archive.directory(inputDir, false); // 'false' means don't include the parent directory in the archive root
+  archive.finalize();
 }
 
 export const plugin: PluginDefinition = {
@@ -101,8 +113,7 @@ export const plugin: PluginDefinition = {
     name: "soapWSDLs",
     description: "Import SOAP WSDL URLs",
     async onImport(_ctx: Context, args: { text: string }) {
-      
-      process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = "0"
+      process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let importFile: ImportStructure = JSON.parse(args.text);
@@ -116,9 +127,16 @@ export const plugin: PluginDefinition = {
           try {
             let urlData = await fetch(url);
             let urlText = await urlData.text();
+            fs.mkdir(`./_temp${idx}`, { recursive: true }, (err) => {
+              if (err) {
+                console.error("Error creating directory:", err);
+                return;
+              }
+              console.log("Directory created successfully!");
+            });
             await downloadWsdlAndImports(url, `./_temp${idx}`);
 
-            zipDirectory(`./_temp${idx}/`, `_temp${idx}.zip`)
+            zipDirectory(`./_temp${idx}/`, `_temp${idx}.zip`);
             // todo zip content in directory
             const wsdls = await getJsonForWSDL(`_temp${idx}.zip`);
             const serviceData = getWSDLServices(wsdls);
@@ -153,31 +171,33 @@ export const plugin: PluginDefinition = {
               );
               delete swagger.info["x-ibm-name"];
               delete swagger["x-ibm-configuration"];
-              
-              Object.entries(swagger.paths).forEach((ent:Array<any>) => {
+
+              Object.entries(swagger.paths).forEach((ent: Array<any>) => {
                 const req = ent[1].post;
-                const inputLoc = (req.parameters).find(a => a.in == 'body');
+                const inputLoc = req.parameters.find((a) => a.in == "body");
                 const schemaRef = inputLoc.schema.$ref;
-                const inputs = schemaRef.substring(schemaRef.lastIndexOf("/")+1);
-                requests.push({                  
-                    model: "http_request",
-                    id: `GENERATE_ID::HTTP_REQUEST_${requestCount}`,
-                    workspaceId: "GENERATE_ID::WORKSPACE_0",
-                    folderId: `GENERATE_ID::FOLDER_${folderCount}`,
-                    name: req.operationId,
-                    method: "POST",
-                    url: `${url.replace("?WSDL", "")}${ent[0]}`,
-                    urlParameters: [],
-                    body: {text: swagger.definitions[inputs].example},
-                    bodyType: "text/xml",
-                    authentication: {},
-                    authenticationType: null,
-                    headers: [],
-                    description: req.description,
-                })
-                requestCount++
-              })
-               folderCount++;
+                const inputs = schemaRef.substring(
+                  schemaRef.lastIndexOf("/") + 1
+                );
+                requests.push({
+                  model: "http_request",
+                  id: `GENERATE_ID::HTTP_REQUEST_${requestCount}`,
+                  workspaceId: "GENERATE_ID::WORKSPACE_0",
+                  folderId: `GENERATE_ID::FOLDER_${folderCount}`,
+                  name: req.operationId,
+                  method: "POST",
+                  url: `${url.replace("?WSDL", "")}${ent[0]}`,
+                  urlParameters: [],
+                  body: { text: swagger.definitions[inputs].example },
+                  bodyType: "text/xml",
+                  authentication: {},
+                  authenticationType: null,
+                  headers: [],
+                  description: req.description,
+                });
+                requestCount++;
+              });
+              folderCount++;
             }
 
             let response: ImportPluginResponse = {
@@ -208,7 +228,7 @@ export const plugin: PluginDefinition = {
             return resolve(response);
           } catch (e) {
             console.error(e);
-            _ctx.toast.show({message: `error: ${JSON.stringify(e)}`})
+            _ctx.toast.show({ message: `error: ${JSON.stringify(e)}` });
             reject();
           }
         });
@@ -222,63 +242,85 @@ export const plugin: PluginDefinition = {
   },
 };
 
-plugin.importer?.onImport({
-  clipboard: {
-    copyText: function (text: string): Promise<void> {
-      throw new Error("Function not implemented.");
-    }
-  },
-  toast: {
-    show: function (args: ShowToastRequest): Promise<void> {
-      throw new Error("Function not implemented.");
-    }
-  },
-  prompt: {
-    text: function (args: PromptTextRequest): Promise<PromptTextResponse["value"]> {
-      throw new Error("Function not implemented.");
-    }
-  },
-  store: {
-    set: function <T>(key: string, value: T): Promise<void> {
-      throw new Error("Function not implemented.");
+plugin.importer?.onImport(
+  {
+    clipboard: {
+      copyText: function (text: string): Promise<void> {
+        throw new Error("Function not implemented.");
+      },
     },
-    get: function <T>(key: string): Promise<T | undefined> {
-      throw new Error("Function not implemented.");
+    toast: {
+      show: function (args: ShowToastRequest): Promise<void> {
+        throw new Error("Function not implemented.");
+      },
     },
-    delete: function (key: string): Promise<boolean> {
-      throw new Error("Function not implemented.");
-    }
-  },
-  window: {
-    openUrl: function (args: OpenWindowRequest & { onNavigate?: (args: { url: string; }) => void; onClose?: () => void; }): Promise<{ close: () => void; }> {
-      throw new Error("Function not implemented.");
-    }
-  },
-  httpRequest: {
-    send: function (args: SendHttpRequestRequest): Promise<SendHttpRequestResponse["httpResponse"]> {
-      throw new Error("Function not implemented.");
+    prompt: {
+      text: function (
+        args: PromptTextRequest
+      ): Promise<PromptTextResponse["value"]> {
+        throw new Error("Function not implemented.");
+      },
     },
-    getById: function (args: GetHttpRequestByIdRequest): Promise<GetHttpRequestByIdResponse["httpRequest"]> {
-      throw new Error("Function not implemented.");
+    store: {
+      set: function <T>(key: string, value: T): Promise<void> {
+        throw new Error("Function not implemented.");
+      },
+      get: function <T>(key: string): Promise<T | undefined> {
+        throw new Error("Function not implemented.");
+      },
+      delete: function (key: string): Promise<boolean> {
+        throw new Error("Function not implemented.");
+      },
     },
-    render: function (args: RenderHttpRequestRequest): Promise<RenderHttpRequestResponse["httpRequest"]> {
-      throw new Error("Function not implemented.");
-    }
+    window: {
+      openUrl: function (
+        args: OpenWindowRequest & {
+          onNavigate?: (args: { url: string }) => void;
+          onClose?: () => void;
+        }
+      ): Promise<{ close: () => void }> {
+        throw new Error("Function not implemented.");
+      },
+    },
+    httpRequest: {
+      send: function (
+        args: SendHttpRequestRequest
+      ): Promise<SendHttpRequestResponse["httpResponse"]> {
+        throw new Error("Function not implemented.");
+      },
+      getById: function (
+        args: GetHttpRequestByIdRequest
+      ): Promise<GetHttpRequestByIdResponse["httpRequest"]> {
+        throw new Error("Function not implemented.");
+      },
+      render: function (
+        args: RenderHttpRequestRequest
+      ): Promise<RenderHttpRequestResponse["httpRequest"]> {
+        throw new Error("Function not implemented.");
+      },
+    },
+    httpResponse: {
+      find: function (
+        args: FindHttpResponsesRequest
+      ): Promise<FindHttpResponsesResponse["httpResponses"]> {
+        throw new Error("Function not implemented.");
+      },
+    },
+    templates: {
+      render: function (
+        args: TemplateRenderRequest
+      ): Promise<TemplateRenderResponse["data"]> {
+        throw new Error("Function not implemented.");
+      },
+    },
   },
-  httpResponse: {
-    find: function (args: FindHttpResponsesRequest): Promise<FindHttpResponsesResponse["httpResponses"]> {
-      throw new Error("Function not implemented.");
-    }
-  },
-  templates: {
-    render: function (args: TemplateRenderRequest): Promise<TemplateRenderResponse["data"]> {
-      throw new Error("Function not implemented.");
-    }
-  }
-}, {text: `{
+  {
+    text: `{
     "urls": [
         "https://acg-r02-dit-osb.myac.gov.au/AgedCare/Client?WSDL",
         "https://acg-r02-dit-osb.myac.gov.au/AgedCare/SupportPlan?WSDL"
     ],
     "name": "Demo Workspace"
-}`});
+}`,
+  }
+);
