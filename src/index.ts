@@ -40,8 +40,6 @@ export const plugin: PluginDefinition = {
             const wsdls = await getJsonForWSDL(url);
             const serviceData = getWSDLServices(wsdls);
 
-
-            let items: Array<AtLeast<HttpRequest, CommonFields>> = [];
             // Loop through all services
             for (const item in serviceData.services) {
               // eslint-disable-line
@@ -97,8 +95,8 @@ export const plugin: PluginDefinition = {
                 requestCount++
               })
                folderCount++;
-
             }
+            
             let response: ImportPluginResponse = {
               resources: {
                 workspaces: [

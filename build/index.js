@@ -63920,7 +63920,6 @@ var plugin = {
           try {
             const wsdls = await (0, import_apiconnect_wsdl.getJsonForWSDL)(url);
             const serviceData = (0, import_apiconnect_wsdl.getWSDLServices)(wsdls);
-            let items = [];
             for (const item in serviceData.services) {
               const svcName = serviceData.services[item].service;
               const wsdlId = serviceData.services[item].filename;
