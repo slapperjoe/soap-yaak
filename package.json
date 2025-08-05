@@ -3,7 +3,8 @@
   "private": true,
   "version": "0.0.1",
   "scripts": {
-    "build": "yaakcli dev"
+    "build": "yaakcli dev",
+    "release": "yaakcli build"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",
@@ -14,7 +15,10 @@
   "dependencies": {
     "@yaakapp/api": "^0.5.3",
     "apiconnect-wsdl": "^1.8.31",
+    "axios": "^1.11.0",
+    "fs": "^0.0.1-security",
     "jotai": "^2.12.5",
-    "shell-quote": "^1.8.3"
+    "shell-quote": "^1.8.3",
+    "xml2js": "^0.6.2"
   }
 }

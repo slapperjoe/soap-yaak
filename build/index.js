@@ -63918,7 +63918,9 @@ var plugin = {
       const myPromise = new Promise((resolve, reject) => {
         importFile?.urls.forEach(async (url) => {
           try {
-            const wsdls = await (0, import_apiconnect_wsdl.getJsonForWSDL)(url);
+            let urlData = await fetch(url);
+            let urlText = await urlData.text();
+            const wsdls = await (0, import_apiconnect_wsdl.getJsonForWSDL)(urlText);
             const serviceData = (0, import_apiconnect_wsdl.getWSDLServices)(wsdls);
             for (const item in serviceData.services) {
               const svcName = serviceData.services[item].service;
@@ -63997,7 +63999,8 @@ var plugin = {
             };
             return resolve(response);
           } catch (e) {
-            _ctx.toast.show({ message: JSON.stringify(e) });
+            console.error(e);
+            _ctx.toast.show({ message: `error: ${JSON.stringify(e)}` });
             reject();
           }
         });

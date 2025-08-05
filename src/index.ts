@@ -1,8 +1,22 @@
 import type {
   Context,
+  FindHttpResponsesRequest,
+  FindHttpResponsesResponse,
   Folder,
+  GetHttpRequestByIdRequest,
+  GetHttpRequestByIdResponse,
   HttpRequest,
+  OpenWindowRequest,
   PluginDefinition,
+  PromptTextRequest,
+  PromptTextResponse,
+  RenderHttpRequestRequest,
+  RenderHttpRequestResponse,
+  SendHttpRequestRequest,
+  SendHttpRequestResponse,
+  ShowToastRequest,
+  TemplateRenderRequest,
+  TemplateRenderResponse,
 } from "@yaakapp/api";
 import {
   getJsonForWSDL,
@@ -11,6 +25,11 @@ import {
   getSwaggerForService,
 } from "apiconnect-wsdl";
 import { ImportPluginResponse } from "@yaakapp/api/lib/plugins/ImporterPlugin";
+
+import axios from "axios";
+import xml2js from 'xml2js';
+import fs from 'fs';
+import path from 'path';
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
@@ -22,11 +41,48 @@ interface ImportStructure {
   name: string;
 }
 
+async function downloadWsdlAndImports(wsdlUrl, targetDir) {
+    try {
+        const response = await axios.get(wsdlUrl);
+        const wsdlContent = response.data;
+        const fileName = path.basename(new URL(wsdlUrl).pathname);
+        fs.writeFileSync(path.join(targetDir, fileName), wsdlContent);
+
+        const parser = new xml2js.Parser();
+        const result = await parser.parseStringPromise(wsdlContent);
+
+        // Find and download WSDL imports
+        if (result['wsdl:definitions'] && result['wsdl:definitions']['wsdl:import']) {
+            for (const imp of result['wsdl:definitions']['wsdl:import']) {
+                const importLocation = imp['$'].location;
+                const importedUrl = new URL(importLocation, wsdlUrl).href;
+                await downloadWsdlAndImports(importedUrl, targetDir); // Recursive call
+            }
+        }
+
+        // Find and download XSD imports (within types section)
+        if (result['wsdl:definitions'] && result['wsdl:definitions']['wsdl:types'] && result['wsdl:definitions']['wsdl:types'][0]['xsd:schema'] && result['wsdl:definitions']['wsdl:types'][0]['xsd:schema'][0]['xsd:import']) {
+            for (const imp of result['wsdl:definitions']['wsdl:types'][0]['xsd:schema'][0]['xsd:import']) {
+                const schemaLocation = imp['$'].schemaLocation;
+                const importedUrl = new URL(schemaLocation, wsdlUrl).href;
+                await downloadWsdlAndImports(importedUrl, targetDir); // Recursive call
+            }
+        }
+
+        console.log(`Downloaded: ${wsdlUrl}`);
+    } catch (error) {
+        console.error(`Error downloading ${wsdlUrl}:`, error.message);
+    }
+}
+
 export const plugin: PluginDefinition = {
   importer: {
     name: "soapWSDLs",
     description: "Import SOAP WSDL URLs",
     async onImport(_ctx: Context, args: { text: string }) {
+      
+      process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = "0"
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let importFile: ImportStructure = JSON.parse(args.text);
 
@@ -37,7 +93,11 @@ export const plugin: PluginDefinition = {
       const myPromise = new Promise<ImportPluginResponse>((resolve, reject) => {
         importFile?.urls.forEach(async (url) => {
           try {
-            const wsdls = await getJsonForWSDL(url);
+            let urlData = await fetch(url);
+            let urlText = await urlData.text();
+            await downloadWsdlAndImports('url', `./downloaded_wsdls_${url}`);
+            // todo zip content in directory
+            const wsdls = await getJsonForWSDL(urlText);
             const serviceData = getWSDLServices(wsdls);
 
             // Loop through all services
@@ -96,7 +156,7 @@ export const plugin: PluginDefinition = {
               })
                folderCount++;
             }
-            
+
             let response: ImportPluginResponse = {
               resources: {
                 workspaces: [
@@ -124,7 +184,8 @@ export const plugin: PluginDefinition = {
 
             return resolve(response);
           } catch (e) {
-            _ctx.toast.show({message: JSON.stringify(e)})
+            console.error(e);
+            _ctx.toast.show({message: `error: ${JSON.stringify(e)}`})
             reject();
           }
         });
@@ -137,3 +198,61 @@ export const plugin: PluginDefinition = {
     },
   },
 };
+
+// plugin.importer?.onImport({
+//   clipboard: {
+//     copyText: function (text: string): Promise<void> {
+//       throw new Error("Function not implemented.");
+//     }
+//   },
+//   toast: {
+//     show: function (args: ShowToastRequest): Promise<void> {
+//       throw new Error("Function not implemented.");
+//     }
+//   },
+//   prompt: {
+//     text: function (args: PromptTextRequest): Promise<PromptTextResponse["value"]> {
+//       throw new Error("Function not implemented.");
+//     }
+//   },
+//   store: {
+//     set: function <T>(key: string, value: T): Promise<void> {
+//       throw new Error("Function not implemented.");
+//     },
+//     get: function <T>(key: string): Promise<T | undefined> {
+//       throw new Error("Function not implemented.");
+//     },
+//     delete: function (key: string): Promise<boolean> {
+//       throw new Error("Function not implemented.");
+//     }
+//   },
+//   window: {
+//     openUrl: function (args: OpenWindowRequest & { onNavigate?: (args: { url: string; }) => void; onClose?: () => void; }): Promise<{ close: () => void; }> {
+//       throw new Error("Function not implemented.");
+//     }
+//   },
+//   httpRequest: {
+//     send: function (args: SendHttpRequestRequest): Promise<SendHttpRequestResponse["httpResponse"]> {
+//       throw new Error("Function not implemented.");
+//     },
+//     getById: function (args: GetHttpRequestByIdRequest): Promise<GetHttpRequestByIdResponse["httpRequest"]> {
+//       throw new Error("Function not implemented.");
+//     },
+//     render: function (args: RenderHttpRequestRequest): Promise<RenderHttpRequestResponse["httpRequest"]> {
+//       throw new Error("Function not implemented.");
+//     }
+//   },
+//   httpResponse: {
+//     find: function (args: FindHttpResponsesRequest): Promise<FindHttpResponsesResponse["httpResponses"]> {
+//       throw new Error("Function not implemented.");
+//     }
+//   },
+//   templates: {
+//     render: function (args: TemplateRenderRequest): Promise<TemplateRenderResponse["data"]> {
+//       throw new Error("Function not implemented.");
+//     }
+//   }
+// }, {text: `{
+//   "urls": ["http://www.dneonline.com/calculator.asmx?WSDL"],
+//   "name": "Demo Workspace"
+// }`});
