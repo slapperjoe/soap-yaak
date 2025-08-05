@@ -30,7 +30,7 @@ import axios from "axios";
 import xml2js from 'xml2js';
 import fs from 'fs';
 import path from 'path';
-import archiver from "archiver"
+import archiver from "archiver" 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
 type RootFields = "name" | "id" | "model";
@@ -112,15 +112,15 @@ export const plugin: PluginDefinition = {
       let requests: Array<AtLeast<HttpRequest, CommonFields>> = [];
       let requestCount = 0;
       const myPromise = new Promise<ImportPluginResponse>((resolve, reject) => {
-        importFile?.urls.forEach(async (url) => {
+        importFile?.urls.forEach(async (url, idx) => {
           try {
             let urlData = await fetch(url);
             let urlText = await urlData.text();
-            await downloadWsdlAndImports('url', `./downloaded_wsdls_${url}`);
+            await downloadWsdlAndImports(url, `./_temp${idx}`);
 
-            zipDirectory(`./downloaded_wsdls_${url}/`, `${url}.zip`)
+            zipDirectory(`./_temp${idx}/`, `_temp${idx}.zip`)
             // todo zip content in directory
-            const wsdls = await getJsonForWSDL(`${url}.zip`);
+            const wsdls = await getJsonForWSDL(`_temp${idx}.zip`);
             const serviceData = getWSDLServices(wsdls);
 
             // Loop through all services
@@ -276,6 +276,9 @@ plugin.importer?.onImport({
     }
   }
 }, {text: `{
-  "urls": ["http://www.dneonline.com/calculator.asmx?WSDL"],
-  "name": "Demo Workspace"
+    "urls": [
+        "https://acg-r02-dit-osb.myac.gov.au/AgedCare/Client?WSDL",
+        "https://acg-r02-dit-osb.myac.gov.au/AgedCare/SupportPlan?WSDL"
+    ],
+    "name": "Demo Workspace"
 }`});
