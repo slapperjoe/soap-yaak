@@ -1,0 +1,11 @@
+    {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "type": "typescript",
+                "tsconfig": "tsconfig.json",
+                "group": "build",
+                "label": "tsc: build - tsconfigStandalone.json" // Matches the preLaunchTask name
+            }
+        ]
+    }

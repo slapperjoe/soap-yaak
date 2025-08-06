@@ -23,6 +23,7 @@ import {
   getWSDLServices,
   findWSDLForServiceName,
   getSwaggerForService,
+  introspectWSDL
 } from "apiconnect-wsdl";
 import { ImportPluginResponse } from "@yaakapp/api/lib/plugins/ImporterPlugin";
 
@@ -31,6 +32,8 @@ import xml2js from "xml2js";
 import fs from "fs";
 import path from "path";
 import archiver from "archiver";
+import { zip } from 'zip-a-folder';
+
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
 type RootFields = "name" | "id" | "model";
@@ -41,7 +44,7 @@ interface ImportStructure {
   name: string;
 }
 
-async function downloadWsdlAndImports(wsdlUrl, targetDir) {
+async function downloadWsdlAndImports(wsdlUrl: string, targetDir: string) {
   try {
     const response = await axios.get(wsdlUrl);
     const wsdlContent = response.data;
@@ -80,16 +83,15 @@ async function downloadWsdlAndImports(wsdlUrl, targetDir) {
     }
 
     console.log(`Downloaded: ${wsdlUrl}`);
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error downloading ${wsdlUrl}:`, error.message);
   }
 }
 
 function zipDirectory(inputDir: string, outZip: string) {
+
   const output = fs.createWriteStream(outZip);
-  const archive = archiver("zip", {
-    zlib: { level: 9 }, // Sets compression level
-  });
+  const archive = archiver('zip');
 
   output.on("close", function () {
     console.log(archive.pointer() + " total bytes");
@@ -98,7 +100,7 @@ function zipDirectory(inputDir: string, outZip: string) {
     );
   });
 
-  archive.on("error", function (err) {
+  archive.on("error", function (err: any) {
     throw err;
   });
 
@@ -136,7 +138,9 @@ export const plugin: PluginDefinition = {
             });
             await downloadWsdlAndImports(url, `./_temp${idx}`);
 
-            zipDirectory(`./_temp${idx}/`, `_temp${idx}.zip`);
+            var jim = await introspectWSDL(url);
+
+            await zip(`./_temp${idx}/`, `_temp${idx}.zip`)
             // todo zip content in directory
             const wsdls = await getJsonForWSDL(`_temp${idx}.zip`);
             const serviceData = getWSDLServices(wsdls);
@@ -174,7 +178,7 @@ export const plugin: PluginDefinition = {
 
               Object.entries(swagger.paths).forEach((ent: Array<any>) => {
                 const req = ent[1].post;
-                const inputLoc = req.parameters.find((a) => a.in == "body");
+                const inputLoc = req.parameters.find((a: any) => a.in == "body");
                 const schemaRef = inputLoc.schema.$ref;
                 const inputs = schemaRef.substring(
                   schemaRef.lastIndexOf("/") + 1
@@ -314,13 +318,22 @@ plugin.importer?.onImport(
       },
     },
   },
+
   {
-    text: `{
-    "urls": [
-        "https://acg-r02-dit-osb.myac.gov.au/AgedCare/Client?WSDL",
-        "https://acg-r02-dit-osb.myac.gov.au/AgedCare/SupportPlan?WSDL"
-    ],
-    "name": "Demo Workspace"
-}`,
-  }
+    "text": `{
+      "urls": [
+          "http://www.dneonline.com/calculator.asmx?WSDL"
+      ],
+      "name": "Demo Workspace"
+  }`
+
+//   {
+//     "text": `{
+//       "urls": [
+//         "https://acg-r02-dit-osb.myac.gov.au/AgedCare/Client?WSDL",
+//         "https://acg-r02-dit-osb.myac.gov.au/AgedCare/SupportPlan?WSDL"
+//       ],
+//      "name": "Demo Workspace"
+//    }`
+   }
 );

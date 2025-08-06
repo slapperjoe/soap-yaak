@@ -11,17 +11,15 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}\\build\\index.js",
-      "outFiles": [
-        "${workspaceFolder}/**/*.js"
-      ]
+      "program": "${workspaceFolder}/dist/index.js", // Path to your compiled JS entry point
+      "preLaunchTask": "tsc: build - tsconfigStandalone.json" // Runs TypeScript build before launching
     },
     {
-        "type": "node",
-        "request": "attach",
-        "name": "Attach to Process",
-        "port": 50174,
-        "address": "localhost"
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Process",
+      "port": 50174,
+      "address": "localhost"
     }
   ]
 }
