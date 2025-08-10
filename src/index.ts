@@ -31,6 +31,7 @@ import xml2js from "xml2js";
 import fs from "fs";
 import path from "path";
 import yazl from "yazl";
+import { ImportSource } from "./ImportSource";
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
@@ -41,7 +42,6 @@ interface ImportStructure {
   urls: Array<string>;
   name: string;
 }
-
 
 const headerFile = [
   "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FClient%2FAgedCare.Client.xsd",
@@ -86,7 +86,7 @@ const headerFile = [
   "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FClient%2FAgedCare.ClientReferrals.xsd",
   "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Header.xsd",
   "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Fault.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.AuditHeader.xsd"
+  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.AuditHeader.xsd",
 ];
 
 async function downloadWsdlAndImports(
@@ -98,20 +98,10 @@ async function downloadWsdlAndImports(
   try {
     let response;
     let httpUrl;
-    try {
-     response = await fetch(wsdlUrl.replace(".xsd", ""));
-     httpUrl = wsdlUrl.replace(".xsd", "");
-    } catch (e){
-      response = await fetch("http://"+wsdlUrl.replace(".xsd", ""));
-      httpUrl = "http://" + wsdlUrl.replace(".xsd", "")
-    }
+    const importObj = new ImportSource(wsdlUrl);
+    response = await fetch(importObj.sImport);
 
     let wsdlContent = await response.text();
-
-    const filePath =
-      wsdlUrl.indexOf("?WSDL") > -1
-        ? wsdlUrl.replace("?WSDL", ".wsdl")
-        : wsdlUrl;
 
     const parser = new xml2js.Parser();
     const result = await parser.parseStringPromise(wsdlContent);
@@ -127,12 +117,9 @@ async function downloadWsdlAndImports(
       for (const imp of result[`${headNamespace}:definitions`][
         `${headNamespace}:import`
       ]) {
-        const schemaLocation = (imp["$"].location + ".xsd").replace("http://", "");;
+        const schemaLocation = imp["$"].location + ".xsd";
         wsdlContent = wsdlContent.replace(imp["$"].location, schemaLocation);
-        const importedUrl = new URL(schemaLocation, httpUrl).href.replace(
-          "http://",
-          ""
-        );
+        const importedUrl = new URL(schemaLocation, importObj.uri).href;
         if (headerSet.indexOf(importedUrl) == -1) {
           headerSet.push(importedUrl);
           await downloadWsdlAndImports(
@@ -152,12 +139,12 @@ async function downloadWsdlAndImports(
       for (const imp of result[`${headNamespace}:schema`][
         `${headNamespace}:import`
       ]) {
-        const schemaLocation = (imp["$"].schemaLocation + ".xsd").replace("http://", "");;
-        wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
-        const importedUrl = new URL(schemaLocation, httpUrl).href.replace(
-          "http://",
-          ""
+        const schemaLocation = imp["$"].schemaLocation + ".xsd";
+        wsdlContent = wsdlContent.replace(
+          imp["$"].schemaLocation,
+          schemaLocation
         );
+        const importedUrl = new URL(schemaLocation, importObj.uri).href;
         if (headerSet.indexOf(importedUrl) == -1) {
           headerSet.push(importedUrl);
           await downloadWsdlAndImports(
@@ -175,21 +162,21 @@ async function downloadWsdlAndImports(
       result[`${headNamespace}:definitions`] &&
       result[`${headNamespace}:definitions`][`${headNamespace}:types`] &&
       result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][
-      `xsd:schema`
+        `xsd:schema`
       ] &&
       result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][
-      `xsd:schema`
+        `xsd:schema`
       ][0][`xsd:import`]
     ) {
       for (const imp of result[`${headNamespace}:definitions`][
         `${headNamespace}:types`
       ][0]["xsd:schema"][0]["xsd:import"]) {
-        const schemaLocation = (imp["$"].schemaLocation + ".xsd").replace("http://", "");;
-        wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
-        const importedUrl = new URL(schemaLocation, httpUrl).href.replace(
-          "http://",
-          ""
+        const schemaLocation = (imp["$"].schemaLocation + ".xsd");
+        wsdlContent = wsdlContent.replace(
+          imp["$"].schemaLocation,
+          schemaLocation
         );
+        const importedUrl = new URL(schemaLocation, importObj.uri).href;
         if (headerSet.indexOf(importedUrl) == -1) {
           headerSet.push(importedUrl);
           await downloadWsdlAndImports(
@@ -209,12 +196,12 @@ async function downloadWsdlAndImports(
       for (const imp of result[`${headNamespace}:schema`][
         `${headNamespace}:include`
       ]) {
-        const schemaLocation = (imp["$"].schemaLocation + ".xsd").replace("http://", "");
-        wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
-        const importedUrl = new URL(schemaLocation, httpUrl).href.replace(
-          "http://",
-          ""
+        const schemaLocation = (imp["$"].schemaLocation + ".xsd");
+        wsdlContent = wsdlContent.replace(
+          imp["$"].schemaLocation,
+          schemaLocation
         );
+        const importedUrl = new URL(schemaLocation, httpUrl).href;
         if (headerSet.indexOf(importedUrl) == -1) {
           headerSet.push(importedUrl);
           await downloadWsdlAndImports(
@@ -227,7 +214,7 @@ async function downloadWsdlAndImports(
       }
     }
 
-    zipfile.addBuffer(Buffer.from(wsdlContent.replaceAll(":80", "")), filePath);
+    zipfile.addBuffer(Buffer.from(wsdlContent.replaceAll(":80", "")), importObj.fUrl);
 
     console.log(`Downloaded: ${wsdlUrl}`);
   } catch (error: any) {
@@ -259,105 +246,108 @@ export const plugin: PluginDefinition = {
             await downloadWsdlAndImports(url, "", zipfile, headerSet);
             //var jim = await introspectWSDL(url);
 
-            zipfile.outputStream.pipe(fs.createWriteStream("bob.zip")).on("error", async (e: any, a: any) => {
-              debugger;
-            }).on("close", async () => {
-              console.log("done");
-              const wsdls = await getJsonForWSDL(`bob.zip`, undefined, {
-                apiFromXSD: true,
-                allowExtraFiles: true,
-                implicitHeaderFiles: headerSet, //headerFile,
-              });
-              const serviceData = getWSDLServices(wsdls);
+            zipfile.outputStream
+              .pipe(fs.createWriteStream("bob.zip"))
+              .on("error", async (e: any, a: any) => {
+                debugger;
+              })
+              .on("close", async () => {
+                console.log("done");
+                const wsdls = await getJsonForWSDL(`bob.zip`, undefined, {
+                  apiFromXSD: true,
+                  allowExtraFiles: true,
+                  implicitHeaderFiles: headerSet, //headerFile,
+                });
+                const serviceData = getWSDLServices(wsdls);
 
-              // Loop through all services
-              for (const item in serviceData.services) {
-                // eslint-disable-line
-                const svcName = serviceData.services[item].service;
-                const wsdlId = serviceData.services[item].filename;
-                const wsdlEntry = findWSDLForServiceName(wsdls, svcName);
-                const swaggerOptions = {
-                  inlineAttributes: true,
-                  suppressExamples: false,
-                  type: "wsdl",
-                  wssecurity: true,
+                // Loop through all services
+                for (const item in serviceData.services) {
+                  // eslint-disable-line
+                  const svcName = serviceData.services[item].service;
+                  const wsdlId = serviceData.services[item].filename;
+                  const wsdlEntry = findWSDLForServiceName(wsdls, svcName);
+                  const swaggerOptions = {
+                    inlineAttributes: true,
+                    suppressExamples: false,
+                    type: "wsdl",
+                    wssecurity: true,
+                  };
+
+                  folders.push({
+                    model: "folder" as const,
+                    workspaceId: "GENERATE_ID::WORKSPACE_0",
+                    folderId: null,
+                    sortPriority: -Date.now(),
+                    name: svcName,
+                    id: `GENERATE_ID::FOLDER_${folderCount}`,
+                  });
+
+                  const swagger = getSwaggerForService(
+                    wsdlEntry,
+                    svcName,
+                    wsdlId,
+                    swaggerOptions
+                  );
+                  delete swagger.info["x-ibm-name"];
+                  delete swagger["x-ibm-configuration"];
+
+                  Object.entries(swagger.paths).forEach((ent: Array<any>) => {
+                    const req = ent[1].post;
+                    const inputLoc = req.parameters.find(
+                      (a: any) => a.in == "body"
+                    );
+                    const schemaRef = inputLoc.schema.$ref;
+                    const inputs = schemaRef.substring(
+                      schemaRef.lastIndexOf("/") + 1
+                    );
+                    requests.push({
+                      model: "http_request",
+                      id: `GENERATE_ID::HTTP_REQUEST_${requestCount}`,
+                      workspaceId: "GENERATE_ID::WORKSPACE_0",
+                      folderId: `GENERATE_ID::FOLDER_${folderCount}`,
+                      name: req.operationId,
+                      method: "POST",
+                      url: `${url.replace("?WSDL", "")}${ent[0]}`,
+                      urlParameters: [],
+                      body: { text: swagger.definitions[inputs].example },
+                      bodyType: "text/xml",
+                      authentication: {},
+                      authenticationType: null,
+                      headers: [],
+                      description: req.description,
+                    });
+                    requestCount++;
+                  });
+                  folderCount++;
+                }
+
+                let response: ImportPluginResponse = {
+                  resources: {
+                    workspaces: [
+                      {
+                        model: "workspace",
+                        id: "GENERATE_ID::WORKSPACE_0",
+                        name: "New Collection",
+                      },
+                    ],
+                    environments: [
+                      {
+                        id: "GENERATE_ID::ENVIRONMENT_0",
+                        model: "environment",
+                        name: "Global Variables",
+                        variables: [],
+                        workspaceId: "GENERATE_ID::WORKSPACE_0",
+                      },
+                    ],
+                    folders: folders,
+                    httpRequests: requests,
+                    grpcRequests: [],
+                    websocketRequests: [],
+                  },
                 };
 
-                folders.push({
-                  model: "folder" as const,
-                  workspaceId: "GENERATE_ID::WORKSPACE_0",
-                  folderId: null,
-                  sortPriority: -Date.now(),
-                  name: svcName,
-                  id: `GENERATE_ID::FOLDER_${folderCount}`,
-                });
-
-                const swagger = getSwaggerForService(
-                  wsdlEntry,
-                  svcName,
-                  wsdlId,
-                  swaggerOptions
-                );
-                delete swagger.info["x-ibm-name"];
-                delete swagger["x-ibm-configuration"];
-
-                Object.entries(swagger.paths).forEach((ent: Array<any>) => {
-                  const req = ent[1].post;
-                  const inputLoc = req.parameters.find(
-                    (a: any) => a.in == "body"
-                  );
-                  const schemaRef = inputLoc.schema.$ref;
-                  const inputs = schemaRef.substring(
-                    schemaRef.lastIndexOf("/") + 1
-                  );
-                  requests.push({
-                    model: "http_request",
-                    id: `GENERATE_ID::HTTP_REQUEST_${requestCount}`,
-                    workspaceId: "GENERATE_ID::WORKSPACE_0",
-                    folderId: `GENERATE_ID::FOLDER_${folderCount}`,
-                    name: req.operationId,
-                    method: "POST",
-                    url: `${url.replace("?WSDL", "")}${ent[0]}`,
-                    urlParameters: [],
-                    body: { text: swagger.definitions[inputs].example },
-                    bodyType: "text/xml",
-                    authentication: {},
-                    authenticationType: null,
-                    headers: [],
-                    description: req.description,
-                  });
-                  requestCount++;
-                });
-                folderCount++;
-              }
-
-              let response: ImportPluginResponse = {
-                resources: {
-                  workspaces: [
-                    {
-                      model: "workspace",
-                      id: "GENERATE_ID::WORKSPACE_0",
-                      name: "New Collection",
-                    },
-                  ],
-                  environments: [
-                    {
-                      id: "GENERATE_ID::ENVIRONMENT_0",
-                      model: "environment",
-                      name: "Global Variables",
-                      variables: [],
-                      workspaceId: "GENERATE_ID::WORKSPACE_0",
-                    },
-                  ],
-                  folders: folders,
-                  httpRequests: requests,
-                  grpcRequests: [],
-                  websocketRequests: [],
-                },
-              };
-
-              return resolve(response);
-            })
+                return resolve(response);
+              });
             // todo zip content in directory
 
             zipfile.end();
