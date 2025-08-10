@@ -6,37 +6,94 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.plugin = void 0;
 const apiconnect_wsdl_1 = require("apiconnect-wsdl");
 const xml2js_1 = __importDefault(require("xml2js"));
-const headerFile = JSON.parse('["http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FClient%2FAgedCare.Client.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FClient","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAddress%2FAddress","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Types","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FService%2FService","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAttachment%2FAttachment","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FInteraction%2FInteractions","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.BusinessMessage","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FEmployee","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FOutlet","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FReference%2FReference","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FABNDetails.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FLegalDetails.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FStatusDetails.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FContactDetails.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FContact%2FContact","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FCulturalSpecialisations.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FReligiousSpecialisations.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FOrganisation.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FPerson","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FEnterprise.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FAttachment%2FEnterprise.Attachment_v3","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FEnterprise.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAttachment%2FAttachment_v3","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FEnterprise.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FEnterprise.BusinessMessage","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FClassification%2FAgedCare.Classification","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FIncorporationDetails.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FContract.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FSpecialisations.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Types_v2","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FPerson.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FNotification%2FNotification","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FNNCAndSanctions","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FCulturalSpecialisations","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FReligiousSpecialisations","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FOrganisation","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FCarePlan%2FAgedCare.CarePlan","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAssessment%2FAgedCare.Assessment","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FReferral%2FAgedCare.AssessmentReferral","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FReferral%2FReferral.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FSupportPlan%2FSupportPlanReview","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FAgedCare.Client.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FFundingAssessment%2FAgedCare.FundingAssessment","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FClient.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FSupportPlan%2FAgedCare.SupportPlan","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FDelegateApproval%2FAgedCare.DelegateApproval","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FAgedCare.Client","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FClient%2FAgedCare.ClientReferrals.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Header.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Fault.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.AuditHeader.xsd","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Header","http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.BusinessMessage.xsd"]');
+const fs_1 = __importDefault(require("fs"));
+const yazl_1 = __importDefault(require("yazl"));
+const headerFile = [
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FClient%2FAgedCare.Client.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FClient.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAddress%2FAddress.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Types.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FService%2FService.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAttachment%2FAttachment.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FInteraction%2FInteractions.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.BusinessMessage.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FEmployee.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FOutlet.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FReference%2FReference.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FABNDetails.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FLegalDetails.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FStatusDetails.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FContactDetails.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FContact%2FContact.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FCulturalSpecialisations.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FReligiousSpecialisations.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FOrganisation.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FPerson.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FEnterprise.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FAttachment%2FEnterprise.Attachment_v3.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FEnterprise.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAttachment%2FAttachment_v3.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FEnterprise.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FEnterprise.BusinessMessage.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FClassification%2FAgedCare.Classification.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FIncorporationDetails.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FContract.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FSpecialisations.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Types_v2.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FNotification%2FNotification.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FNNCAndSanctions.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FCarePlan%2FAgedCare.CarePlan.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAssessment%2FAgedCare.Assessment.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FReferral%2FAgedCare.AssessmentReferral.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FReferral%2FReferral.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FSupportPlan%2FSupportPlanReview.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FAgedCare.Client.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FFundingAssessment%2FAgedCare.FundingAssessment.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FSupportPlan%2FAgedCare.SupportPlan.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FDelegateApproval%2FAgedCare.DelegateApproval.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FClient%2FAgedCare.ClientReferrals.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Header.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Fault.xsd",
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.AuditHeader.xsd"
+];
 async function downloadWsdlAndImports(wsdlUrl, targetDir, zipfile, headerSet) {
     try {
-        const response = await fetch(wsdlUrl.replace(".xsd", ""));
-        const wsdlContent = await response.text();
-        const filePath = wsdlUrl.indexOf("?WSDL") > -1 ? wsdlUrl.replace("?WSDL", ".wsdl") : wsdlUrl; // + ".xsd";// path.basename(new URL(wsdlUrl).pathname);
-        //fs.writeFileSync(path.join(targetDir, fileName), wsdlContent);
-        zipfile.addBuffer(Buffer.from(wsdlContent), filePath);
-        //archiver.append(wsdlContent, {name: wsdlUrl.replace("?WSDL",".wsdl").replaceAll("/","\\/")}); 
-        //zipStuff(wsdlContent, wsdlUrl, "happy.zip")
+        let response;
+        let httpUrl;
+        try {
+            response = await fetch(wsdlUrl.replace(".xsd", ""));
+            httpUrl = wsdlUrl.replace(".xsd", "");
+        }
+        catch (e) {
+            response = await fetch("http://" + wsdlUrl.replace(".xsd", ""));
+            httpUrl = "http://" + wsdlUrl.replace(".xsd", "");
+        }
+        let wsdlContent = await response.text();
+        const filePath = wsdlUrl.indexOf("?WSDL") > -1
+            ? wsdlUrl.replace("?WSDL", ".wsdl")
+            : wsdlUrl;
         const parser = new xml2js_1.default.Parser();
         const result = await parser.parseStringPromise(wsdlContent);
         const headElement = Object.keys(result)[0];
-        const headNamespace = headElement?.substring(0, headElement.indexOf(':'));
+        const headNamespace = headElement?.substring(0, headElement.indexOf(":"));
         // Find and download WSDL imports
-        if ((result[`${headNamespace}:definitions`] &&
-            result[`${headNamespace}:definitions`][`${headNamespace}:import`])) {
+        if (result[`${headNamespace}:definitions`] &&
+            result[`${headNamespace}:definitions`][`${headNamespace}:import`]) {
             for (const imp of result[`${headNamespace}:definitions`][`${headNamespace}:import`]) {
-                const importLocation = imp["$"].location;
-                const importedUrl = new URL(importLocation, wsdlUrl).href.replace("//", "/");
+                const schemaLocation = (imp["$"].location + ".xsd").replace("http://", "");
+                ;
+                wsdlContent = wsdlContent.replace(imp["$"].location, schemaLocation);
+                const importedUrl = new URL(schemaLocation, httpUrl).href.replace("http://", "");
                 if (headerSet.indexOf(importedUrl) == -1) {
                     headerSet.push(importedUrl);
-                    await downloadWsdlAndImports(importedUrl, importLocation.substring(0, importLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
+                    await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
                 }
             }
         }
-        if ((result[`${headNamespace}:schema`] &&
-            result[`${headNamespace}:schema`][`${headNamespace}:import`])) {
+        if (result[`${headNamespace}:schema`] &&
+            result[`${headNamespace}:schema`][`${headNamespace}:import`]) {
             for (const imp of result[`${headNamespace}:schema`][`${headNamespace}:import`]) {
-                const schemaLocation = imp["$"].schemaLocation;
-                const importedUrl = new URL(schemaLocation, wsdlUrl).href.replace("//", "/");
+                const schemaLocation = (imp["$"].schemaLocation + ".xsd").replace("http://", "");
+                ;
+                wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
+                const importedUrl = new URL(schemaLocation, httpUrl).href.replace("http://", "");
                 if (headerSet.indexOf(importedUrl) == -1) {
                     headerSet.push(importedUrl);
                     await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
@@ -44,30 +101,34 @@ async function downloadWsdlAndImports(wsdlUrl, targetDir, zipfile, headerSet) {
             }
         }
         // Find and download XSD imports (within types section)
-        if ((result[`${headNamespace}:definitions`] &&
+        if (result[`${headNamespace}:definitions`] &&
             result[`${headNamespace}:definitions`][`${headNamespace}:types`] &&
             result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][`xsd:schema`] &&
-            result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][`xsd:schema`][0][`xsd:import`])) {
+            result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][`xsd:schema`][0][`xsd:import`]) {
             for (const imp of result[`${headNamespace}:definitions`][`${headNamespace}:types`][0]["xsd:schema"][0]["xsd:import"]) {
-                const schemaLocation = (imp["$"].schemaLocation += ".xsd");
-                const importedUrl = new URL(schemaLocation, wsdlUrl).href.replace("//", "/");
+                const schemaLocation = (imp["$"].schemaLocation + ".xsd").replace("http://", "");
+                ;
+                wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
+                const importedUrl = new URL(schemaLocation, httpUrl).href.replace("http://", "");
                 if (headerSet.indexOf(importedUrl) == -1) {
                     headerSet.push(importedUrl);
                     await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
                 }
             }
         }
-        if ((result[`${headNamespace}:schema`] &&
-            result[`${headNamespace}:schema`][`${headNamespace}:include`])) {
+        if (result[`${headNamespace}:schema`] &&
+            result[`${headNamespace}:schema`][`${headNamespace}:include`]) {
             for (const imp of result[`${headNamespace}:schema`][`${headNamespace}:include`]) {
-                const schemaLocation = (imp["$"].schemaLocation += ".xsd");
-                const importedUrl = new URL(schemaLocation, wsdlUrl).href.replace("//", "/");
+                const schemaLocation = (imp["$"].schemaLocation + ".xsd").replace("http://", "");
+                wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
+                const importedUrl = new URL(schemaLocation, httpUrl).href.replace("http://", "");
                 if (headerSet.indexOf(importedUrl) == -1) {
                     headerSet.push(importedUrl);
                     await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
                 }
             }
         }
+        zipfile.addBuffer(Buffer.from(wsdlContent.replaceAll(":80", "")), filePath);
         console.log(`Downloaded: ${wsdlUrl}`);
     }
     catch (error) {
@@ -89,97 +150,97 @@ exports.plugin = {
             const myPromise = new Promise((resolve, reject) => {
                 importFile?.urls.forEach(async (url, idx) => {
                     try {
-                        // const zipfile = new yazl.ZipFile();
-                        // let headerSet: Array<string> = [];
-                        // //const wsdls = await getJsonForWSDL(`bob.zip`);
-                        // await downloadWsdlAndImports(url, "", zipfile, headerSet);
-                        // //var jim = await introspectWSDL(url);
-                        // zipfile.outputStream.pipe(fs.createWriteStream("bob.zip")).on("error", async (e: any, a: any) => {
-                        //   debugger;
-                        // }).on("close", async () => {
-                        console.log("done");
-                        const wsdls = await (0, apiconnect_wsdl_1.getJsonForWSDL)(`bob.zip`, undefined, {
-                            apiFromXSD: true,
-                            allowExtraFiles: true,
-                            implicitHeaderFiles: headerFile
-                        });
-                        const serviceData = (0, apiconnect_wsdl_1.getWSDLServices)(wsdls);
-                        // Loop through all services
-                        for (const item in serviceData.services) {
-                            // eslint-disable-line
-                            const svcName = serviceData.services[item].service;
-                            const wsdlId = serviceData.services[item].filename;
-                            const wsdlEntry = (0, apiconnect_wsdl_1.findWSDLForServiceName)(wsdls, svcName);
-                            const swaggerOptions = {
-                                inlineAttributes: true,
-                                suppressExamples: false,
-                                type: "wsdl",
-                                wssecurity: true,
-                            };
-                            folders.push({
-                                model: "folder",
-                                workspaceId: "GENERATE_ID::WORKSPACE_0",
-                                folderId: null,
-                                sortPriority: -Date.now(),
-                                name: svcName,
-                                id: `GENERATE_ID::FOLDER_${folderCount}`,
+                        const zipfile = new yazl_1.default.ZipFile();
+                        let headerSet = [];
+                        //const wsdls = await getJsonForWSDL(`bob.zip`);
+                        await downloadWsdlAndImports(url, "", zipfile, headerSet);
+                        //var jim = await introspectWSDL(url);
+                        zipfile.outputStream.pipe(fs_1.default.createWriteStream("bob.zip")).on("error", async (e, a) => {
+                            debugger;
+                        }).on("close", async () => {
+                            console.log("done");
+                            const wsdls = await (0, apiconnect_wsdl_1.getJsonForWSDL)(`bob.zip`, undefined, {
+                                apiFromXSD: true,
+                                allowExtraFiles: true,
+                                implicitHeaderFiles: headerSet, //headerFile,
                             });
-                            const swagger = (0, apiconnect_wsdl_1.getSwaggerForService)(wsdlEntry, svcName, wsdlId, swaggerOptions);
-                            delete swagger.info["x-ibm-name"];
-                            delete swagger["x-ibm-configuration"];
-                            Object.entries(swagger.paths).forEach((ent) => {
-                                const req = ent[1].post;
-                                const inputLoc = req.parameters.find((a) => a.in == "body");
-                                const schemaRef = inputLoc.schema.$ref;
-                                const inputs = schemaRef.substring(schemaRef.lastIndexOf("/") + 1);
-                                requests.push({
-                                    model: "http_request",
-                                    id: `GENERATE_ID::HTTP_REQUEST_${requestCount}`,
+                            const serviceData = (0, apiconnect_wsdl_1.getWSDLServices)(wsdls);
+                            // Loop through all services
+                            for (const item in serviceData.services) {
+                                // eslint-disable-line
+                                const svcName = serviceData.services[item].service;
+                                const wsdlId = serviceData.services[item].filename;
+                                const wsdlEntry = (0, apiconnect_wsdl_1.findWSDLForServiceName)(wsdls, svcName);
+                                const swaggerOptions = {
+                                    inlineAttributes: true,
+                                    suppressExamples: false,
+                                    type: "wsdl",
+                                    wssecurity: true,
+                                };
+                                folders.push({
+                                    model: "folder",
                                     workspaceId: "GENERATE_ID::WORKSPACE_0",
-                                    folderId: `GENERATE_ID::FOLDER_${folderCount}`,
-                                    name: req.operationId,
-                                    method: "POST",
-                                    url: `${url.replace("?WSDL", "")}${ent[0]}`,
-                                    urlParameters: [],
-                                    body: { text: swagger.definitions[inputs].example },
-                                    bodyType: "text/xml",
-                                    authentication: {},
-                                    authenticationType: null,
-                                    headers: [],
-                                    description: req.description,
+                                    folderId: null,
+                                    sortPriority: -Date.now(),
+                                    name: svcName,
+                                    id: `GENERATE_ID::FOLDER_${folderCount}`,
                                 });
-                                requestCount++;
-                            });
-                            folderCount++;
-                        }
-                        let response = {
-                            resources: {
-                                workspaces: [
-                                    {
-                                        model: "workspace",
-                                        id: "GENERATE_ID::WORKSPACE_0",
-                                        name: "New Collection",
-                                    },
-                                ],
-                                environments: [
-                                    {
-                                        id: "GENERATE_ID::ENVIRONMENT_0",
-                                        model: "environment",
-                                        name: "Global Variables",
-                                        variables: [],
+                                const swagger = (0, apiconnect_wsdl_1.getSwaggerForService)(wsdlEntry, svcName, wsdlId, swaggerOptions);
+                                delete swagger.info["x-ibm-name"];
+                                delete swagger["x-ibm-configuration"];
+                                Object.entries(swagger.paths).forEach((ent) => {
+                                    const req = ent[1].post;
+                                    const inputLoc = req.parameters.find((a) => a.in == "body");
+                                    const schemaRef = inputLoc.schema.$ref;
+                                    const inputs = schemaRef.substring(schemaRef.lastIndexOf("/") + 1);
+                                    requests.push({
+                                        model: "http_request",
+                                        id: `GENERATE_ID::HTTP_REQUEST_${requestCount}`,
                                         workspaceId: "GENERATE_ID::WORKSPACE_0",
-                                    },
-                                ],
-                                folders: folders,
-                                httpRequests: requests,
-                                grpcRequests: [],
-                                websocketRequests: [],
-                            },
-                        };
-                        return resolve(response);
-                        // })
-                        // // todo zip content in directory
-                        // zipfile.end();
+                                        folderId: `GENERATE_ID::FOLDER_${folderCount}`,
+                                        name: req.operationId,
+                                        method: "POST",
+                                        url: `${url.replace("?WSDL", "")}${ent[0]}`,
+                                        urlParameters: [],
+                                        body: { text: swagger.definitions[inputs].example },
+                                        bodyType: "text/xml",
+                                        authentication: {},
+                                        authenticationType: null,
+                                        headers: [],
+                                        description: req.description,
+                                    });
+                                    requestCount++;
+                                });
+                                folderCount++;
+                            }
+                            let response = {
+                                resources: {
+                                    workspaces: [
+                                        {
+                                            model: "workspace",
+                                            id: "GENERATE_ID::WORKSPACE_0",
+                                            name: "New Collection",
+                                        },
+                                    ],
+                                    environments: [
+                                        {
+                                            id: "GENERATE_ID::ENVIRONMENT_0",
+                                            model: "environment",
+                                            name: "Global Variables",
+                                            variables: [],
+                                            workspaceId: "GENERATE_ID::WORKSPACE_0",
+                                        },
+                                    ],
+                                    folders: folders,
+                                    httpRequests: requests,
+                                    grpcRequests: [],
+                                    websocketRequests: [],
+                                },
+                            };
+                            return resolve(response);
+                        });
+                        // todo zip content in directory
+                        zipfile.end();
                     }
                     catch (e) {
                         console.error(e);
@@ -262,6 +323,6 @@ exports.plugin.importer?.onImport({
         "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Client?WSDL"
       ],
      "name": "Demo Workspace"
-   }`
+   }`,
 });
 //# sourceMappingURL=index.js.map
