@@ -5,6 +5,7 @@ class ImportSource {
     sImport;
     uri;
     fUrl;
+    fDir;
     isWSDL;
     constructor(sImport) {
         this.sImport = sImport;
@@ -13,6 +14,7 @@ class ImportSource {
         this.isWSDL = this.fUrl.endsWith(".wsdl");
         if (!this.isWSDL)
             this.fUrl += ".xsd";
+        this.fDir = this.fUrl.substring(0, this.fUrl.lastIndexOf("/"));
     }
 }
 exports.ImportSource = ImportSource;

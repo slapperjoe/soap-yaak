@@ -23,14 +23,17 @@ export async function downloadWsdlAndImports(
     if (result[`${headNamespace}:definitions`] &&
       result[`${headNamespace}:definitions`][`${headNamespace}:import`]) {
       for (const imp of result[`${headNamespace}:definitions`][`${headNamespace}:import`]) {
-        const schemaLocation = imp["$"].location + ".xsd";
-        wsdlContent = wsdlContent.replace(imp["$"].location, schemaLocation);
-        const importedUrl = new URL(schemaLocation, importObj.uri).href;
+        const schemaLocation = new ImportSource(imp["$"].location);
+        wsdlContent = wsdlContent.replace(
+          importObj.sImport,
+          importObj.fUrl
+        );
+        const importedUrl = new URL(schemaLocation.sImport, importObj.uri).href;
         if (headerSet.indexOf(importedUrl) == -1) {
           headerSet.push(importedUrl);
           await downloadWsdlAndImports(
             importedUrl,
-            schemaLocation.substring(0, schemaLocation.lastIndexOf("/")),
+            schemaLocation.fDir,
             zipfile,
             headerSet
           ); // Recursive call
@@ -41,17 +44,17 @@ export async function downloadWsdlAndImports(
     if (result[`${headNamespace}:schema`] &&
       result[`${headNamespace}:schema`][`${headNamespace}:import`]) {
       for (const imp of result[`${headNamespace}:schema`][`${headNamespace}:import`]) {
-        const schemaLocation = imp["$"].schemaLocation + ".xsd";
+        const schemaLocation = new ImportSource(imp["$"].schemaLocation);
         wsdlContent = wsdlContent.replace(
-          imp["$"].schemaLocation,
-          schemaLocation
+          importObj.sImport,
+          importObj.fUrl
         );
-        const importedUrl = new URL(schemaLocation, importObj.uri).href;
+        const importedUrl = new URL(schemaLocation.sImport, importObj.uri).href;
         if (headerSet.indexOf(importedUrl) == -1) {
           headerSet.push(importedUrl);
           await downloadWsdlAndImports(
             importedUrl,
-            schemaLocation.substring(0, schemaLocation.lastIndexOf("/")),
+            schemaLocation.fDir,
             zipfile,
             headerSet
           ); // Recursive call
@@ -65,17 +68,17 @@ export async function downloadWsdlAndImports(
       result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][`xsd:schema`] &&
       result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][`xsd:schema`][0][`xsd:import`]) {
       for (const imp of result[`${headNamespace}:definitions`][`${headNamespace}:types`][0]["xsd:schema"][0]["xsd:import"]) {
-        const schemaLocation = (imp["$"].schemaLocation + ".xsd");
+        const schemaLocation = new ImportSource(imp["$"].schemaLocation);
         wsdlContent = wsdlContent.replace(
-          imp["$"].schemaLocation,
-          schemaLocation
+          importObj.sImport,
+          importObj.fUrl
         );
-        const importedUrl = new URL(schemaLocation, importObj.uri).href;
+        const importedUrl = new URL(schemaLocation.sImport, importObj.uri).href;
         if (headerSet.indexOf(importedUrl) == -1) {
           headerSet.push(importedUrl);
           await downloadWsdlAndImports(
             importedUrl,
-            schemaLocation.substring(0, schemaLocation.lastIndexOf("/")),
+            schemaLocation.fDir,
             zipfile,
             headerSet
           ); // Recursive call
@@ -86,17 +89,17 @@ export async function downloadWsdlAndImports(
     if (result[`${headNamespace}:schema`] &&
       result[`${headNamespace}:schema`][`${headNamespace}:include`]) {
       for (const imp of result[`${headNamespace}:schema`][`${headNamespace}:include`]) {
-        const schemaLocation = (imp["$"].schemaLocation + ".xsd");
+        const schemaLocation = new ImportSource(imp["$"].schemaLocation);
         wsdlContent = wsdlContent.replace(
-          imp["$"].schemaLocation,
-          schemaLocation
+          importObj.sImport,
+          importObj.fUrl
         );
-        const importedUrl = new URL(schemaLocation, importObj.uri).href;
+        const importedUrl = new URL(schemaLocation.sImport, importObj.uri).href;
         if (headerSet.indexOf(importedUrl) == -1) {
           headerSet.push(importedUrl);
           await downloadWsdlAndImports(
             importedUrl,
-            schemaLocation.substring(0, schemaLocation.lastIndexOf("/")),
+            schemaLocation.fDir,
             zipfile,
             headerSet
           ); // Recursive call

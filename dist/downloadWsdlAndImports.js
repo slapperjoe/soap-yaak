@@ -47,12 +47,12 @@ async function downloadWsdlAndImports(wsdlUrl, targetDir, zipfile, headerSet) {
             result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][`xsd:schema`] &&
             result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][`xsd:schema`][0][`xsd:import`]) {
             for (const imp of result[`${headNamespace}:definitions`][`${headNamespace}:types`][0]["xsd:schema"][0]["xsd:import"]) {
-                const schemaLocation = (imp["$"].schemaLocation + ".xsd");
-                wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
-                const importedUrl = new URL(schemaLocation, importObj.uri).href;
+                const schemaLocation = new ImportSource_1.ImportSource(imp["$"].schemaLocation);
+                wsdlContent = wsdlContent.replace(importObj.sImport, importObj.fUrl);
+                const importedUrl = new URL(schemaLocation.fUrl, importObj.uri).href;
                 if (headerSet.indexOf(importedUrl) == -1) {
                     headerSet.push(importedUrl);
-                    await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
+                    await downloadWsdlAndImports(importedUrl, schemaLocation.fDir, zipfile, headerSet); // Recursive call
                 }
             }
         }
