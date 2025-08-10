@@ -9,11 +9,7 @@ export class ImportSource {
     this.uri = new URL(sImport);
 
     this.fUrl = this.uri.href.replace("?WSDL", ".wsdl").replace(":80", "");
-    if (this.fUrl.endsWith(".wsdl")) {
-      this.isWSDL = true;
-    } else {
-      this.isWSDL = false;
-      this.fUrl += ".xsd"; 
-    }
+    this.isWSDL = this.fUrl.endsWith(".wsdl");
+    if (!this.isWSDL) this.fUrl += ".xsd";
   }
 }

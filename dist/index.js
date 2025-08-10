@@ -5,9 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.plugin = void 0;
 const apiconnect_wsdl_1 = require("apiconnect-wsdl");
-const xml2js_1 = __importDefault(require("xml2js"));
 const fs_1 = __importDefault(require("fs"));
 const yazl_1 = __importDefault(require("yazl"));
+const downloadWsdlAndImports_1 = require("./downloadWsdlAndImports");
 const headerFile = [
     "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FClient%2FAgedCare.Client.xsd",
     "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FClient.xsd",
@@ -51,90 +51,8 @@ const headerFile = [
     "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FClient%2FAgedCare.ClientReferrals.xsd",
     "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Header.xsd",
     "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Fault.xsd",
-    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.AuditHeader.xsd"
+    "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.AuditHeader.xsd",
 ];
-async function downloadWsdlAndImports(wsdlUrl, targetDir, zipfile, headerSet) {
-    try {
-        let response;
-        let httpUrl;
-        try {
-            response = await fetch(wsdlUrl.replace(".xsd", ""));
-            httpUrl = wsdlUrl.replace(".xsd", "");
-        }
-        catch (e) {
-            response = await fetch("http://" + wsdlUrl.replace(".xsd", ""));
-            httpUrl = "http://" + wsdlUrl.replace(".xsd", "");
-        }
-        let wsdlContent = await response.text();
-        const filePath = wsdlUrl.indexOf("?WSDL") > -1
-            ? wsdlUrl.replace("?WSDL", ".wsdl")
-            : wsdlUrl;
-        const parser = new xml2js_1.default.Parser();
-        const result = await parser.parseStringPromise(wsdlContent);
-        const headElement = Object.keys(result)[0];
-        const headNamespace = headElement?.substring(0, headElement.indexOf(":"));
-        // Find and download WSDL imports
-        if (result[`${headNamespace}:definitions`] &&
-            result[`${headNamespace}:definitions`][`${headNamespace}:import`]) {
-            for (const imp of result[`${headNamespace}:definitions`][`${headNamespace}:import`]) {
-                const schemaLocation = (imp["$"].location + ".xsd").replace("http://", "");
-                ;
-                wsdlContent = wsdlContent.replace(imp["$"].location, schemaLocation);
-                const importedUrl = new URL(schemaLocation, httpUrl).href.replace("http://", "");
-                if (headerSet.indexOf(importedUrl) == -1) {
-                    headerSet.push(importedUrl);
-                    await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
-                }
-            }
-        }
-        if (result[`${headNamespace}:schema`] &&
-            result[`${headNamespace}:schema`][`${headNamespace}:import`]) {
-            for (const imp of result[`${headNamespace}:schema`][`${headNamespace}:import`]) {
-                const schemaLocation = (imp["$"].schemaLocation + ".xsd").replace("http://", "");
-                ;
-                wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
-                const importedUrl = new URL(schemaLocation, httpUrl).href.replace("http://", "");
-                if (headerSet.indexOf(importedUrl) == -1) {
-                    headerSet.push(importedUrl);
-                    await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
-                }
-            }
-        }
-        // Find and download XSD imports (within types section)
-        if (result[`${headNamespace}:definitions`] &&
-            result[`${headNamespace}:definitions`][`${headNamespace}:types`] &&
-            result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][`xsd:schema`] &&
-            result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][`xsd:schema`][0][`xsd:import`]) {
-            for (const imp of result[`${headNamespace}:definitions`][`${headNamespace}:types`][0]["xsd:schema"][0]["xsd:import"]) {
-                const schemaLocation = (imp["$"].schemaLocation + ".xsd").replace("http://", "");
-                ;
-                wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
-                const importedUrl = new URL(schemaLocation, httpUrl).href.replace("http://", "");
-                if (headerSet.indexOf(importedUrl) == -1) {
-                    headerSet.push(importedUrl);
-                    await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
-                }
-            }
-        }
-        if (result[`${headNamespace}:schema`] &&
-            result[`${headNamespace}:schema`][`${headNamespace}:include`]) {
-            for (const imp of result[`${headNamespace}:schema`][`${headNamespace}:include`]) {
-                const schemaLocation = (imp["$"].schemaLocation + ".xsd").replace("http://", "");
-                wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
-                const importedUrl = new URL(schemaLocation, httpUrl).href.replace("http://", "");
-                if (headerSet.indexOf(importedUrl) == -1) {
-                    headerSet.push(importedUrl);
-                    await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
-                }
-            }
-        }
-        zipfile.addBuffer(Buffer.from(wsdlContent.replaceAll(":80", "")), filePath);
-        console.log(`Downloaded: ${wsdlUrl}`);
-    }
-    catch (error) {
-        console.error(`Error downloading ${wsdlUrl}:`, error.message);
-    }
-}
 exports.plugin = {
     importer: {
         name: "soapWSDLs",
@@ -153,11 +71,14 @@ exports.plugin = {
                         const zipfile = new yazl_1.default.ZipFile();
                         let headerSet = [];
                         //const wsdls = await getJsonForWSDL(`bob.zip`);
-                        await downloadWsdlAndImports(url, "", zipfile, headerSet);
+                        await (0, downloadWsdlAndImports_1.downloadWsdlAndImports)(url, "", zipfile, headerSet);
                         //var jim = await introspectWSDL(url);
-                        zipfile.outputStream.pipe(fs_1.default.createWriteStream("bob.zip")).on("error", async (e, a) => {
+                        zipfile.outputStream
+                            .pipe(fs_1.default.createWriteStream("bob.zip"))
+                            .on("error", async (e, a) => {
                             debugger;
-                        }).on("close", async () => {
+                        })
+                            .on("close", async () => {
                             console.log("done");
                             const wsdls = await (0, apiconnect_wsdl_1.getJsonForWSDL)(`bob.zip`, undefined, {
                                 apiFromXSD: true,
