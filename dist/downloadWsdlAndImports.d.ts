@@ -1,2 +1,3 @@
-export declare function downloadWsdlAndImports(wsdlUrl: string, targetDir: string, zipfile: any, headerSet: Array<string>): Promise<void>;
+import { ImportSource } from "./ImportSource";
+export declare function downloadWsdlAndImports(wsdlUrl: string, zipfile: any, headerSet: Array<ImportSource>): Promise<void>;
 //# sourceMappingURL=downloadWsdlAndImports.d.ts.map

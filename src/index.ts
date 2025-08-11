@@ -31,6 +31,7 @@ import fs from "fs";
 import path from "path";
 import yazl from "yazl";
 import { downloadWsdlAndImports } from "./downloadWsdlAndImports";
+import { ImportSource } from "./ImportSource";
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
@@ -107,9 +108,9 @@ export const plugin: PluginDefinition = {
           try {
             const zipfile = new yazl.ZipFile();
 
-            let headerSet: Array<string> = [];
+            let headerSet: Array<ImportSource> = [];
             //const wsdls = await getJsonForWSDL(`bob.zip`);
-            await downloadWsdlAndImports(url, "", zipfile, headerSet);
+            await downloadWsdlAndImports(url, zipfile, headerSet);
             //var jim = await introspectWSDL(url);
 
             zipfile.outputStream
@@ -122,9 +123,10 @@ export const plugin: PluginDefinition = {
                 const wsdls = await getJsonForWSDL(`bob.zip`, undefined, {
                   apiFromXSD: true,
                   allowExtraFiles: true,
-                  implicitHeaderFiles: headerSet, //headerFile,
+                  implicitHeaderFiles: headerSet.map(a=>a.gFile), //headerFile,
                 });
-                const serviceData = getWSDLServices(wsdls);
+                const wsdlSet = [[wsdls.find((a: any) => Object.keys(a.namespaces).length > 0)]];
+                const serviceData = getWSDLServices(wsdlSet);
 
                 // Loop through all services
                 for (const item in serviceData.services) {

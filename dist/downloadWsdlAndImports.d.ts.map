@@ -1,1 +1,1 @@
-{"version":3,"file":"downloadWsdlAndImports.d.ts","sourceRoot":"","sources":["../src/downloadWsdlAndImports.ts"],"names":[],"mappings":"AAGA,wBAAsB,sBAAsB,CAC1C,OAAO,EAAE,MAAM,EACf,SAAS,EAAE,MAAM,EACjB,OAAO,EAAE,GAAG,EACZ,SAAS,EAAE,KAAK,CAAC,MAAM,CAAC,iBAyGzB"}
+{"version":3,"file":"downloadWsdlAndImports.d.ts","sourceRoot":"","sources":["../src/downloadWsdlAndImports.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,YAAY,EAAE,MAAM,gBAAgB,CAAC;AAE9C,wBAAsB,sBAAsB,CAC1C,OAAO,EAAE,MAAM,EACf,OAAO,EAAE,GAAG,EACZ,SAAS,EAAE,KAAK,CAAC,YAAY,CAAC,iBAiE/B"}

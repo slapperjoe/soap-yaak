@@ -6,10 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.downloadWsdlAndImports = downloadWsdlAndImports;
 const xml2js_1 = __importDefault(require("xml2js"));
 const ImportSource_1 = require("./ImportSource");
-async function downloadWsdlAndImports(wsdlUrl, targetDir, zipfile, headerSet) {
+async function downloadWsdlAndImports(wsdlUrl, zipfile, headerSet) {
     try {
         let response;
-        const importObj = new ImportSource_1.ImportSource(wsdlUrl);
+        let importObj = new ImportSource_1.ImportSource(wsdlUrl);
         response = await fetch(importObj.sImport);
         let wsdlContent = await response.text();
         const parser = new xml2js_1.default.Parser();
@@ -20,25 +20,15 @@ async function downloadWsdlAndImports(wsdlUrl, targetDir, zipfile, headerSet) {
         if (result[`${headNamespace}:definitions`] &&
             result[`${headNamespace}:definitions`][`${headNamespace}:import`]) {
             for (const imp of result[`${headNamespace}:definitions`][`${headNamespace}:import`]) {
-                const schemaLocation = imp["$"].location + ".xsd";
-                wsdlContent = wsdlContent.replace(imp["$"].location, schemaLocation);
-                const importedUrl = new URL(schemaLocation, importObj.uri).href;
-                if (headerSet.indexOf(importedUrl) == -1) {
-                    headerSet.push(importedUrl);
-                    await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
-                }
+                let schemaLocation = new ImportSource_1.ImportSource(imp["$"].location);
+                wsdlContent = await processData(schemaLocation, headerSet, wsdlContent, zipfile);
             }
         }
         if (result[`${headNamespace}:schema`] &&
             result[`${headNamespace}:schema`][`${headNamespace}:import`]) {
             for (const imp of result[`${headNamespace}:schema`][`${headNamespace}:import`]) {
-                const schemaLocation = imp["$"].schemaLocation + ".xsd";
-                wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
-                const importedUrl = new URL(schemaLocation, importObj.uri).href;
-                if (headerSet.indexOf(importedUrl) == -1) {
-                    headerSet.push(importedUrl);
-                    await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
-                }
+                let schemaLocation = new ImportSource_1.ImportSource(imp["$"].schemaLocation);
+                wsdlContent = await processData(schemaLocation, headerSet, wsdlContent, zipfile);
             }
         }
         // Find and download XSD imports (within types section)
@@ -47,32 +37,35 @@ async function downloadWsdlAndImports(wsdlUrl, targetDir, zipfile, headerSet) {
             result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][`xsd:schema`] &&
             result[`${headNamespace}:definitions`][`${headNamespace}:types`][0][`xsd:schema`][0][`xsd:import`]) {
             for (const imp of result[`${headNamespace}:definitions`][`${headNamespace}:types`][0]["xsd:schema"][0]["xsd:import"]) {
-                const schemaLocation = new ImportSource_1.ImportSource(imp["$"].schemaLocation);
-                wsdlContent = wsdlContent.replace(importObj.sImport, importObj.fUrl);
-                const importedUrl = new URL(schemaLocation.fUrl, importObj.uri).href;
-                if (headerSet.indexOf(importedUrl) == -1) {
-                    headerSet.push(importedUrl);
-                    await downloadWsdlAndImports(importedUrl, schemaLocation.fDir, zipfile, headerSet); // Recursive call
-                }
+                let schemaLocation = new ImportSource_1.ImportSource(imp["$"].schemaLocation);
+                wsdlContent = await processData(schemaLocation, headerSet, wsdlContent, zipfile);
             }
         }
         if (result[`${headNamespace}:schema`] &&
             result[`${headNamespace}:schema`][`${headNamespace}:include`]) {
             for (const imp of result[`${headNamespace}:schema`][`${headNamespace}:include`]) {
-                const schemaLocation = (imp["$"].schemaLocation + ".xsd");
-                wsdlContent = wsdlContent.replace(imp["$"].schemaLocation, schemaLocation);
-                const importedUrl = new URL(schemaLocation, importObj.uri).href;
-                if (headerSet.indexOf(importedUrl) == -1) {
-                    headerSet.push(importedUrl);
-                    await downloadWsdlAndImports(importedUrl, schemaLocation.substring(0, schemaLocation.lastIndexOf("/")), zipfile, headerSet); // Recursive call
-                }
+                let schemaLocation = new ImportSource_1.ImportSource(imp["$"].schemaLocation);
+                wsdlContent = await processData(schemaLocation, headerSet, wsdlContent, zipfile);
             }
         }
-        zipfile.addBuffer(Buffer.from(wsdlContent.replaceAll(":80", "")), importObj.fUrl);
+        wsdlContent = wsdlContent.replaceAll(":80", "");
+        wsdlContent = wsdlContent.replaceAll(/<!--[^>]*-->/g, "");
+        zipfile.addBuffer(wsdlContent, importObj.hashFile);
         console.log(`Downloaded: ${wsdlUrl}`);
     }
     catch (error) {
         console.error(`Error downloading ${wsdlUrl}:`, error.message);
     }
+}
+async function processData(schemaLocation, headerSet, wsdlContent, zipfile) {
+    let headerItem = headerSet.find(a => a.hashFile == schemaLocation.hashFile);
+    if (headerItem)
+        schemaLocation = headerItem;
+    wsdlContent = wsdlContent.replaceAll(schemaLocation.sImport, schemaLocation.hashFile);
+    if (!headerItem) {
+        headerSet.push(schemaLocation);
+        await downloadWsdlAndImports(schemaLocation.sImport, zipfile, headerSet); // Recursive call
+    }
+    return wsdlContent;
 }
 //# sourceMappingURL=downloadWsdlAndImports.js.map

@@ -71,7 +71,7 @@ exports.plugin = {
                         const zipfile = new yazl_1.default.ZipFile();
                         let headerSet = [];
                         //const wsdls = await getJsonForWSDL(`bob.zip`);
-                        await (0, downloadWsdlAndImports_1.downloadWsdlAndImports)(url, "", zipfile, headerSet);
+                        await (0, downloadWsdlAndImports_1.downloadWsdlAndImports)(url, zipfile, headerSet);
                         //var jim = await introspectWSDL(url);
                         zipfile.outputStream
                             .pipe(fs_1.default.createWriteStream("bob.zip"))
@@ -83,9 +83,9 @@ exports.plugin = {
                             const wsdls = await (0, apiconnect_wsdl_1.getJsonForWSDL)(`bob.zip`, undefined, {
                                 apiFromXSD: true,
                                 allowExtraFiles: true,
-                                implicitHeaderFiles: headerSet, //headerFile,
+                                implicitHeaderFiles: headerSet.map(a => a.gFile), //headerFile,
                             });
-                            const serviceData = (0, apiconnect_wsdl_1.getWSDLServices)(wsdls);
+                            const serviceData = (0, apiconnect_wsdl_1.getWSDLServices)([wsdls[3]]);
                             // Loop through all services
                             for (const item in serviceData.services) {
                                 // eslint-disable-line
