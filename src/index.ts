@@ -41,6 +41,7 @@ type CommonFields = RootFields | "workspaceId";
 interface ImportStructure {
   urls: Array<string>;
   name: string;
+  workspaceId?: string;
 }
 
 const headerFile = [
@@ -107,25 +108,25 @@ export const plugin: PluginDefinition = {
         importFile?.urls.forEach(async (url, idx) => {
           try {
             const zipfile = new yazl.ZipFile();
+            const zipName = (new Date()).getTime() + ".zip";
 
             let headerSet: Array<ImportSource> = [];
-            //const wsdls = await getJsonForWSDL(`bob.zip`);
             await downloadWsdlAndImports(url, zipfile, headerSet);
             //var jim = await introspectWSDL(url);
 
             zipfile.outputStream
-              .pipe(fs.createWriteStream("bob.zip"))
+              .pipe(fs.createWriteStream(zipName))
               .on("error", async (e: any, a: any) => {
                 debugger;
               })
               .on("close", async () => {
                 console.log("done");
-                const wsdls = await getJsonForWSDL(`bob.zip`, undefined, {
+                const wsdls = await getJsonForWSDL(zipName, undefined, {
                   apiFromXSD: true,
                   allowExtraFiles: true,
                   implicitHeaderFiles: headerSet.map(a=>a.gFile), //headerFile,
                 });
-                const wsdlSet = [[wsdls.find((a: any) => Object.keys(a.namespaces).length > 0)]];
+                const wsdlSet = [wsdls.find((a: any) => Object.keys(a.namespaces).length > 0)];
                 const serviceData = getWSDLServices(wsdlSet);
 
                 // Loop through all services
@@ -143,7 +144,7 @@ export const plugin: PluginDefinition = {
 
                   folders.push({
                     model: "folder" as const,
-                    workspaceId: "GENERATE_ID::WORKSPACE_0",
+                    workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
                     folderId: null,
                     sortPriority: -Date.now(),
                     name: svcName,
@@ -171,7 +172,7 @@ export const plugin: PluginDefinition = {
                     requests.push({
                       model: "http_request",
                       id: `GENERATE_ID::HTTP_REQUEST_${requestCount}`,
-                      workspaceId: "GENERATE_ID::WORKSPACE_0",
+                      workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
                       folderId: `GENERATE_ID::FOLDER_${folderCount}`,
                       name: req.operationId,
                       method: "POST",
@@ -194,8 +195,8 @@ export const plugin: PluginDefinition = {
                     workspaces: [
                       {
                         model: "workspace",
-                        id: "GENERATE_ID::WORKSPACE_0",
-                        name: "New Collection",
+                        id: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
+                        name: importFile.name || "New Collection",
                       },
                     ],
                     environments: [
@@ -204,7 +205,7 @@ export const plugin: PluginDefinition = {
                         model: "environment",
                         name: "Global Variables",
                         variables: [],
-                        workspaceId: "GENERATE_ID::WORKSPACE_0",
+                        workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
                       },
                     ],
                     folders: folders,
@@ -220,8 +221,7 @@ export const plugin: PluginDefinition = {
 
             zipfile.end();
           } catch (e) {
-            console.error(e);
-            _ctx.toast.show({ message: `error: ${JSON.stringify(e)}` });
+            console.log(e);
             reject();
           }
         });
@@ -321,7 +321,8 @@ plugin.importer?.onImport(
       "urls": [
         "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Client?WSDL"
       ],
-     "name": "Demo Workspace"
+     "name": "Demo Workspace",
+     "workspaceId": "testwrkspc"
    }`,
   }
 );

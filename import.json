@@ -1,0 +1,7 @@
+{
+    "urls": [
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Client?WSDL"
+    ],
+    "name": "Demo Workspace",
+    "workspaceId": "testwrkspc"
+}

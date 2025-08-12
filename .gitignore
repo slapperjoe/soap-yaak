@@ -2,3 +2,5 @@ _temp.zip
 _temp/calculator.asmx
 _temp*.zip
 _temp*/*
+yaak-store-folder/*
+*.zip
