@@ -42,53 +42,8 @@ interface ImportStructure {
   urls: Array<string>;
   name: string;
   workspaceId?: string;
+  urlReplace?: [{ key: string; value: string }];
 }
-
-const headerFile = [
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FClient%2FAgedCare.Client.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FClient.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAddress%2FAddress.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Types.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FService%2FService.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAttachment%2FAttachment.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FInteraction%2FInteractions.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.BusinessMessage.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FEmployee.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FOutlet.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FReference%2FReference.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FABNDetails.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FLegalDetails.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FStatusDetails.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FContactDetails.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FContact%2FContact.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FCulturalSpecialisations.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FReligiousSpecialisations.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FOrganisation.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FPerson.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FEnterprise.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FAttachment%2FEnterprise.Attachment_v3.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FEnterprise.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAttachment%2FAttachment_v3.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FEnterprise.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FEnterprise.BusinessMessage.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FClassification%2FAgedCare.Classification.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FIncorporationDetails.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FContract.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FSpecialisations.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Types_v2.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FNotification%2FNotification.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FOrganisation%2FNNCAndSanctions.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FCarePlan%2FAgedCare.CarePlan.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FAssessment%2FAgedCare.Assessment.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FReferral%2FAgedCare.AssessmentReferral.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FReferral%2FReferral.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FSupportPlan%2FSupportPlanReview.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FPerson%2FAgedCare.Client.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FFundingAssessment%2FAgedCare.FundingAssessment.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FSupportPlan%2FAgedCare.SupportPlan.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FBusinessObjects%2FDelegateApproval%2FAgedCare.DelegateApproval.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FMessagingObjects%2FClient%2FAgedCare.ClientReferrals.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Header.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Fault.xsd",
-  "http:/acg-r02-dit-osb.myac.gov.au/AgedCare/Client?SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.AuditHeader.xsd",
-];
 
 export const plugin: PluginDefinition = {
   importer: {
@@ -176,7 +131,7 @@ export const plugin: PluginDefinition = {
                       folderId: `GENERATE_ID::FOLDER_${folderCount}`,
                       name: req.operationId,
                       method: "POST",
-                      url: `${url.replace("?WSDL", "")}${ent[0]}`,
+                      url: `${modifyUrl(url, importFile.urlReplace || [])}${ent[0]}`,
                       urlParameters: [],
                       body: { text: swagger.definitions[inputs].example },
                       bodyType: "text/xml",
@@ -204,7 +159,9 @@ export const plugin: PluginDefinition = {
                         id: "GENERATE_ID::ENVIRONMENT_0",
                         model: "environment",
                         name: "Global Variables",
-                        variables: [],
+                        variables: (importFile.urlReplace || []).map((a) => {
+                          return {name: a.key, value: a.value, type: "text"};
+                        }) || [],
                         workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
                       },
                     ],
@@ -234,6 +191,14 @@ export const plugin: PluginDefinition = {
     },
   },
 };
+
+function modifyUrl(url: string, replacements: Array<{ key: string; value: string }>): string {
+  let modifiedUrl = url;
+  replacements.forEach((replacement) => {
+    modifiedUrl = modifiedUrl.replace(new RegExp(replacement.value, 'g'), `{${replacement.key}}`);
+  });
+  return modifiedUrl.replace("?WSDL", "");
+}
 
 plugin.importer?.onImport(
   {
@@ -322,7 +287,12 @@ plugin.importer?.onImport(
         "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Client?WSDL"
       ],
      "name": "Demo Workspace",
-     "workspaceId": "testwrkspc"
+     "workspaceId": "testwrkspc",
+     "urlReplace":[{
+        "key": "environment",
+        "value": "dit"
+      
+    }]
    }`,
   }
 );
