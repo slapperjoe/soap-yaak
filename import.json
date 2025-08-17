@@ -9,11 +9,9 @@
         "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Employee?WSDL",
         "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Interactions?WSDL",
         "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Organisation?WSDL",
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/OrganisationApplications?WSDL*",
-        "http://acg-r02-dit-iis-app.myac.gov.au:80/QueryService.svc?WSDL*",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/OrganisationApplications?WSDL",
         "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Referral?WSDL",
         "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceCatalogue?WSDL",
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceReferral?WSDL*",
         "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/SupportPlan?WSDL"
     ],
     "name": "ACG Workspace",

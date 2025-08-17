@@ -99,7 +99,7 @@ exports.plugin = {
                                             model: "folder",
                                             workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
                                             folderId: null,
-                                            sortPriority: -Date.now(),
+                                            sortPriority: folders.length,
                                             name: svcName,
                                             id: `fl_${createHash(svcName)}`,
                                         });
@@ -116,7 +116,7 @@ exports.plugin = {
                                                 model: "folder",
                                                 workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
                                                 folderId: `fl_${createHash(svcName)}`,
-                                                sortPriority: -Date.now(),
+                                                sortPriority: folders.length,
                                                 name: req.operationId,
                                                 description: `${req.summary} - ${req.description}`,
                                                 id: `fl_${createHash(req.operationId)}`,
@@ -267,19 +267,16 @@ exports.plugin.importer?.onImport({
 {
     "text": `{
       "urls": [
-        "http://acg-r02-dit-iis-app.myac.gov.au:80/QueryService.svc?WSDL",
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Referral?WSDL",
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceCatalogue?WSDL",
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceReferral?WSDL",
-        "http://acg-dit-bld-osb.myac.gov.au:80/AgedCare/SupportPlan?WSDL"
-    ],
-     "name": "Demo Workspace",
-     "workspaceId": "testwrkspc",
-     "urlReplace":[{
-        "key": "environment",
-        "value": "dit"
-      
-    }]
-   }`,
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/OrganisationApplications?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceReferral?WSDL"
+      ],
+      "name": "Demo Workspace",
+      "workspaceId": "testwrkspc",
+      "urlReplace":[{
+          "key": "environment",
+          "value": "dit"        
+      }]
+    }`,
 });
+//SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Header
 //# sourceMappingURL=index.js.map

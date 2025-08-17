@@ -65873,20 +65873,15 @@ plugin.importer?.onImport(
   {
     "text": `{
       "urls": [
-        "http://acg-r02-dit-iis-app.myac.gov.au:80/QueryService.svc?WSDL",
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Referral?WSDL",
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceCatalogue?WSDL",
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceReferral?WSDL",
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/SupportPlan?WSDL"
-    ],
-     "name": "Demo Workspace",
-     "workspaceId": "testwrkspc",
-     "urlReplace":[{
-        "key": "environment",
-        "value": "dit"
-      
-    }]
-   }`
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceReferral?WSDL"
+      ],
+      "name": "Demo Workspace",
+      "workspaceId": "testwrkspc",
+      "urlReplace":[{
+          "key": "environment",
+          "value": "dit"        
+      }]
+    }`
   }
 );
 // Annotate the CommonJS export names for ESM import in node:
@@ -65936,3 +65931,4 @@ q/q.js:
 sax/lib/sax.js:
   (*! http://mths.be/fromcodepoint v0.1.0 by @mathias *)
 */
+                                                                                        
