@@ -42,8 +42,10 @@ interface ImportStructure {
   urls: Array<string>;
   name: string;
   workspaceId?: string;
+  urlReplace?: [{ key: string; value: string }];
 }
 
+<<<<<<< HEAD
 /**
  * Creates a 10-character, non-cryptographic hash from a string.
  *
@@ -79,6 +81,8 @@ function createHash(inputString) {
 }
 
 
+=======
+>>>>>>> eaa1f9a72e417bb6e5cfd224a42017282d16feea
 export const plugin: PluginDefinition = {
   importer: {
     name: "soapWSDLs",
@@ -174,7 +178,7 @@ export const plugin: PluginDefinition = {
                       folderId: `yk_fl_${createHash(req.operationId)}`,
                       name: "RQ " + (new Date()).getTime(),
                       method: "POST",
-                      url: `${url.replace("?WSDL", "")}${ent[0]}`,
+                      url: `${modifyUrl(url, importFile.urlReplace || [])}${ent[0]}`,
                       urlParameters: [],
                       body: { text: swagger.definitions[inputs].example },
                       bodyType: "text/xml",
@@ -202,7 +206,9 @@ export const plugin: PluginDefinition = {
                         id: "GENERATE_ID::ENVIRONMENT_0",
                         model: "environment",
                         name: "Global Variables",
-                        variables: [],
+                        variables: (importFile.urlReplace || []).map((a) => {
+                          return {name: a.key, value: a.value, type: "text"};
+                        }) || [],
                         workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
                       },
                     ],
@@ -232,6 +238,14 @@ export const plugin: PluginDefinition = {
     },
   },
 };
+
+function modifyUrl(url: string, replacements: Array<{ key: string; value: string }>): string {
+  let modifiedUrl = url;
+  replacements.forEach((replacement) => {
+    modifiedUrl = modifiedUrl.replace(new RegExp(replacement.value, 'g'), `{${replacement.key}}`);
+  });
+  return modifiedUrl.replace("?WSDL", "");
+}
 
 plugin.importer?.onImport(
   {
@@ -320,7 +334,12 @@ plugin.importer?.onImport(
         "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Client?WSDL"
       ],
      "name": "Demo Workspace",
-     "workspaceId": "testwrkspc"
+     "workspaceId": "testwrkspc",
+     "urlReplace":[{
+        "key": "environment",
+        "value": "dit"
+      
+    }]
    }`,
   }
 );
