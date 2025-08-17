@@ -45,7 +45,6 @@ interface ImportStructure {
   urlReplace?: [{ key: string; value: string }];
 }
 
-<<<<<<< HEAD
 /**
  * Creates a 10-character, non-cryptographic hash from a string.
  *
@@ -81,8 +80,6 @@ function createHash(inputString) {
 }
 
 
-=======
->>>>>>> eaa1f9a72e417bb6e5cfd224a42017282d16feea
 export const plugin: PluginDefinition = {
   importer: {
     name: "soapWSDLs",
@@ -165,7 +162,7 @@ export const plugin: PluginDefinition = {
 
                     folders.push({
                       model: "folder" as const,
-                      workspaceId: `importFile.workspaceId || "GENERATE_ID::WORKSPACE_0"`,
+                      workspaceId: `yk_fl_${createHash(importFile.workspaceId)}` || "GENERATE_ID::WORKSPACE_0",
                       folderId: null,
                       sortPriority: -Date.now(),
                       name: svcName,
