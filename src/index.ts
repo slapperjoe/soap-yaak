@@ -102,7 +102,8 @@ export const plugin: PluginDefinition = {
 
             let headerSet: Array<ImportSource> = [];
             await downloadWsdlAndImports(url, zipfile, headerSet);
-            //var jim = await introspectWSDL(url);
+           
+            console.log(`{zipName} created for {url}.`);
 
             zipfile.outputStream
               .pipe(fs.createWriteStream(zipName))
@@ -114,15 +115,15 @@ export const plugin: PluginDefinition = {
                 const wsdls = await getJsonForWSDL(zipName, undefined, {
                   apiFromXSD: true,
                   allowExtraFiles: true,
-                  implicitHeaderFiles: headerSet.map(a=>a.gFile), //headerFile,
+                  implicitHeaderFiles: headerSet.map(a=>a.hashFile), //headerFile,
                 });
                 const wsdlSet = [wsdls.find((a: any) => Object.keys(a.namespaces).length > 0)];
                 const serviceData = getWSDLServices(wsdlSet);
 
                 // Loop through all services
                 for (const item in serviceData.services) {
-                  // eslint-disable-line
                   const svcName = serviceData.services[item].service;
+                  console.log(`Adding {svcName}`);
                   const wsdlId = serviceData.services[item].filename;
                   const wsdlEntry = findWSDLForServiceName(wsdls, svcName);
                   const swaggerOptions = {
@@ -228,6 +229,7 @@ export const plugin: PluginDefinition = {
         });
       });
       await myPromise.then(() => {
+        console.log("SOAP Import Complete");
         _ctx.toast.show({ message: "SOAP Import Complete" });
       });
 
