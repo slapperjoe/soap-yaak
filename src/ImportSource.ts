@@ -14,9 +14,11 @@ export class ImportSource {
     this.uri = new URL(sImport);
     this.guid = crypto.randomUUID();
 
-    this.fUrl = this.uri.href.replace("?WSDL", ".wsdl").replace(":80", "");
-    this.isWSDL = this.fUrl.endsWith(".wsdl");
-    if (!this.isWSDL) this.fUrl += ".xsd";
+    this.uri.href = this.uri.href.replace("?wsdl", "?WSDL");
+
+    this.fUrl = this.uri.href.replace(":80", "");
+    this.isWSDL = this.fUrl.indexOf("?WSDL") > -0;
+    this.fUrl += (this.isWSDL) ? ".wsdl" : ".xsd";
 
     const hash = createHash('sha256')
     hash.update(sImport);

@@ -1,7 +1,21 @@
 {
     "urls": [
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Client?WSDL"
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/AssessmentReferral?WSDL",
+        "https://acg-r02-dit-iis-app.myac.gov.au/AssessmentUploadService.svc?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Attachment?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/CarePlan?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Client?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/DelegateApproval?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Employee?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Interactions?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Organisation?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/OrganisationApplications?WSDL*",
+        "http://acg-r02-dit-iis-app.myac.gov.au:80/QueryService.svc?WSDL*",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Referral?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceCatalogue?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceReferral?WSDL*",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/SupportPlan?WSDL"
     ],
-    "name": "Demo Workspace",
-    "workspaceId": "testwrkspc"
+    "name": "ACG Workspace",
+    "workspaceId": "ACGWrkSpce"
 }

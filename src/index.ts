@@ -51,7 +51,8 @@ interface ImportStructure {
  * @param {string} inputString The string to hash.
  * @returns {string} A 10-character hash containing [a-z, A-Z, 0-9].
  */
-function createHash(inputString) {
+function createHash(inputString: string | undefined) {
+  if (!inputString) return null;
   const charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let hash = 0;
   let result = '';
@@ -94,139 +95,157 @@ export const plugin: PluginDefinition = {
       let folderCount = 0;
       let requests: Array<AtLeast<HttpRequest, CommonFields>> = [];
       let requestCount = 0;
-      const myPromise = new Promise<ImportPluginResponse>((resolve, reject) => {
-        importFile?.urls.forEach(async (url, idx) => {
-          try {
-            const zipfile = new yazl.ZipFile();
-            const zipName = (new Date()).getTime() + ".zip";
+      const myPromise = new Promise<ImportPluginResponse>(async (resolve, reject) => {
+        let idx = 0;
+        for (const url of importFile?.urls) {
+          await new Promise<Boolean>(async (resolve2, reject2) => {
+            try {
+              idx++;
+              const zipfile = new yazl.ZipFile();
+              const zipName = idx + "-" + (new Date()).getTime() + ".zip";
 
-            let headerSet: Array<ImportSource> = [];
-            await downloadWsdlAndImports(url, zipfile, headerSet);
-           
-            console.log(`{zipName} created for {url}.`);
+              let headerSet: Array<ImportSource> = [];
+              try {
+                await downloadWsdlAndImports(url, zipfile, headerSet);
+              } catch (e: any) {
+                _ctx.toast.show({ message: `${e.message}` });  
+                resolve2(false);
+              }
 
-            zipfile.outputStream
-              .pipe(fs.createWriteStream(zipName))
-              .on("error", async (e: any, a: any) => {
-                debugger;
-              })
-              .on("close", async () => {
-                console.log("done");
-                const wsdls = await getJsonForWSDL(zipName, undefined, {
-                  apiFromXSD: true,
-                  allowExtraFiles: true,
-                  implicitHeaderFiles: headerSet.map(a=>a.hashFile), //headerFile,
-                });
-                const wsdlSet = [wsdls.find((a: any) => Object.keys(a.namespaces).length > 0)];
-                const serviceData = getWSDLServices(wsdlSet);
+              console.log(`${zipName} created for ${url}.`);
 
-                // Loop through all services
-                for (const item in serviceData.services) {
-                  const svcName = serviceData.services[item].service;
-                  console.log(`Adding {svcName}`);
-                  const wsdlId = serviceData.services[item].filename;
-                  const wsdlEntry = findWSDLForServiceName(wsdls, svcName);
-                  const swaggerOptions = {
-                    inlineAttributes: true,
-                    suppressExamples: false,
-                    type: "wsdl",
-                    wssecurity: true,
-                  };
-
-                  folders.push({
-                    model: "folder" as const,
-                    workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
-                    folderId: null,
-                    sortPriority: -Date.now(),
-                    name: svcName,
-                    id: `GENERATE_ID::FOLDER_${folderCount}`,
-                  });
-
-                  const swagger = getSwaggerForService(
-                    wsdlEntry,
-                    svcName,
-                    wsdlId,
-                    swaggerOptions
-                  );
-                  delete swagger.info["x-ibm-name"];
-                  delete swagger["x-ibm-configuration"];
-
-                  Object.entries(swagger.paths).forEach((ent: Array<any>) => {
-                    const req = ent[1].post;
-                    const inputLoc = req.parameters.find(
-                      (a: any) => a.in == "body"
-                    );
-                    const schemaRef = inputLoc.schema.$ref;
-                    const inputs = schemaRef.substring(
-                      schemaRef.lastIndexOf("/") + 1
-                    );
-
-                    folders.push({
-                      model: "folder" as const,
-                      workspaceId: `yk_fl_${createHash(importFile.workspaceId)}` || "GENERATE_ID::WORKSPACE_0",
-                      folderId: null,
-                      sortPriority: -Date.now(),
-                      name: svcName,
-                      id: `yk_fl_${createHash(req.operationId)}`,
+              zipfile.outputStream
+                .pipe(fs.createWriteStream(zipName))
+                .on("error", async (e: any, a: any) => {
+                  debugger;
+                })
+                .on("close", async () => {
+                  console.log("done");
+                  try {
+                    const wsdls = await getJsonForWSDL(zipName, undefined, {
+                      apiFromXSD: true,
+                      allowExtraFiles: true,
+                      implicitHeaderFiles: headerSet.filter(a => !a.isWSDL).map(a => a.hashFile), //headerFile,
                     });
-                    requests.push({
-                      model: "http_request",
-                      id: `GENERATE_ID::HTTP_REQUEST_${requestCount}`,
-                      workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
-                      folderId: `yk_fl_${createHash(req.operationId)}`,
-                      name: "RQ " + (new Date()).getTime(),
-                      method: "POST",
-                      url: `${modifyUrl(url, importFile.urlReplace || [])}${ent[0]}`,
-                      urlParameters: [],
-                      body: { text: swagger.definitions[inputs].example },
-                      bodyType: "text/xml",
-                      authentication: {},
-                      authenticationType: null,
-                      headers: [],
-                      description: req.description,
-                    });
-                    requestCount++;
-                  });
-                  folderCount++;
-                }
+                    const wsdlSet = [wsdls.find((a: any) => Object.keys(a.namespaces).length > 0)];
+                    const serviceData = getWSDLServices(wsdlSet);
+                  
 
-                let response: ImportPluginResponse = {
-                  resources: {
-                    workspaces: [
-                      {
-                        model: "workspace",
-                        id: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
-                        name: importFile.name || "New Collection",
-                      },
-                    ],
-                    environments: [
-                      {
-                        id: "GENERATE_ID::ENVIRONMENT_0",
-                        model: "environment",
-                        name: "Global Variables",
-                        variables: (importFile.urlReplace || []).map((a) => {
-                          return {name: a.key, value: a.value, type: "text"};
-                        }) || [],
+                    // Loop through all services
+                    for (const item in serviceData.services) {
+                      const svcName = serviceData.services[item].service;
+                      console.log(`Adding ${svcName}`);
+                      const wsdlId = serviceData.services[item].filename;
+                      const wsdlEntry = findWSDLForServiceName(wsdls, svcName);
+                      const swaggerOptions = {
+                        inlineAttributes: true,
+                        suppressExamples: false,
+                        type: "wsdl",
+                        wssecurity: true,
+                      };
+
+                      folders.push({
+                        model: "folder" as const,
                         workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
-                      },
-                    ],
-                    folders: folders,
-                    httpRequests: requests,
-                    grpcRequests: [],
-                    websocketRequests: [],
-                  },
-                };
+                        folderId: null,
+                        sortPriority: folders.length,
+                        name: svcName,
+                        id: `fl_${createHash(svcName)}`,
+                      });
 
-                return resolve(response);
-              });
-            // todo zip content in directory
+                      const swagger = getSwaggerForService(
+                        wsdlEntry,
+                        svcName,
+                        wsdlId,
+                        swaggerOptions
+                      );
+                      delete swagger.info["x-ibm-name"];
+                      delete swagger["x-ibm-configuration"];
 
-            zipfile.end();
-          } catch (e) {
-            console.log(e);
-            reject();
-          }
-        });
+                      const reqDateString = (new Date()).toISOString();
+
+                      Object.entries(swagger.paths).forEach((ent: Array<any>) => {
+                        const req = ent[1].post;
+                        const inputLoc = req.parameters.find(
+                          (a: any) => a.in == "body"
+                        );
+                        const schemaRef = inputLoc.schema.$ref;
+                        const inputs = schemaRef.substring(
+                          schemaRef.lastIndexOf("/") + 1
+                        );
+
+                        folders.push({
+                          model: "folder" as const,
+                          workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
+                          folderId: `fl_${createHash(svcName)}`,
+                          sortPriority: folders.length,
+                          name: req.operationId,
+                          description: `${req.summary} - ${req.description}`,
+                          id: `fl_${createHash(req.operationId)}`,
+                        });
+                        requests.push({
+                          model: "http_request",
+                          id: `GENERATE_ID::HTTP_REQUEST_${requestCount}`,
+                          workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
+                          folderId: `fl_${createHash(req.operationId)}`,
+                          name: reqDateString,
+                          method: "POST",
+                          url: `${modifyUrl(url, importFile.urlReplace || [])}${ent[0]}`,
+                          urlParameters: [],
+                          body: { text: swagger.definitions[inputs].example },
+                          bodyType: "text/xml",
+                          authentication: {},
+                          authenticationType: null,
+                          headers: [],
+                          description: req.description,
+                        });
+                        requestCount++;
+                      });
+                      folderCount++;
+                      _ctx.toast.show({ message: `${svcName} imported.` });                    
+                      resolve2(true);
+                    }
+                  } catch (e: any){                    
+                    _ctx.toast.show({ message: `Failed to import: ${e.message}` });  
+                    resolve2(false);
+                  }
+                });
+
+              zipfile.end();
+            } catch (e: any) {
+              _ctx.toast.show({ message: `Failed to import: ${e.message}` });  
+              reject2(false);
+            }
+          });
+        };
+        let response: ImportPluginResponse = {
+          resources: {
+            workspaces: [
+              {
+                model: "workspace",
+                id: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
+                name: importFile.name || "New Collection",
+              },
+            ],
+            environments: [
+              {
+                id: `en_${createHash(importFile.workspaceId)}`,
+                model: "environment",
+                base: false,
+                name: "GlobalX Variables",
+                variables: (importFile.urlReplace || []).map((a) => {
+                  return { name: a.key, value: a.value };
+                }) || [],
+                workspaceId: importFile.workspaceId || "GENERATE_ID::WORKSPACE_0",
+              },
+            ],
+            folders: folders,
+            httpRequests: requests,
+            grpcRequests: [],
+            websocketRequests: [],
+          },
+        };
+        return resolve(response);
       });
       await myPromise.then(() => {
         console.log("SOAP Import Complete");
@@ -241,7 +260,7 @@ export const plugin: PluginDefinition = {
 function modifyUrl(url: string, replacements: Array<{ key: string; value: string }>): string {
   let modifiedUrl = url;
   replacements.forEach((replacement) => {
-    modifiedUrl = modifiedUrl.replace(new RegExp(replacement.value, 'g'), `{${replacement.key}}`);
+    modifiedUrl = modifiedUrl.replace(new RegExp(replacement.value, 'g'), `{{${replacement.key}}}`);
   });
   return modifiedUrl.replace("?WSDL", "");
 }
@@ -255,7 +274,8 @@ plugin.importer?.onImport(
     },
     toast: {
       show: function (args: ShowToastRequest): Promise<void> {
-        throw new Error("Function not implemented.");
+        console.log(args.message);
+        return Promise.resolve();
       },
     },
     prompt: {
@@ -330,8 +350,12 @@ plugin.importer?.onImport(
   {
     "text": `{
       "urls": [
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Client?WSDL"
-      ],
+        "http://acg-r02-dit-iis-app.myac.gov.au:80/QueryService.svc?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/Referral?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceCatalogue?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceReferral?WSDL",
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/SupportPlan?WSDL"
+    ],
      "name": "Demo Workspace",
      "workspaceId": "testwrkspc",
      "urlReplace":[{

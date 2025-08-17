@@ -54,7 +54,7 @@ async function downloadWsdlAndImports(wsdlUrl, zipfile, headerSet) {
         console.log(`Downloaded: ${wsdlUrl}`);
     }
     catch (error) {
-        console.error(`Error downloading ${wsdlUrl}:`, error.message);
+        throw new Error(`Error downloading ${wsdlUrl}:`, error.message);
     }
 }
 async function processData(schemaLocation, headerSet, wsdlContent, zipfile) {

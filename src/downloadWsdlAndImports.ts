@@ -67,7 +67,7 @@ export async function downloadWsdlAndImports(
 
     console.log(`Downloaded: ${wsdlUrl}`);
   } catch (error: any) {
-    console.error(`Error downloading ${wsdlUrl}:`, error.message);
+    throw new Error(`Error downloading ${wsdlUrl}:`, error.message);
   }
 }
 
