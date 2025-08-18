@@ -95,6 +95,8 @@ export const plugin: PluginDefinition = {
       let folderCount = 0;
       let requests: Array<AtLeast<HttpRequest, CommonFields>> = [];
       let requestCount = 0;
+
+      let zipFiles: Array<string> = [];
       const myPromise = new Promise<ImportPluginResponse>(async (resolve, reject) => {
         let idx = 0;
         for (const url of importFile?.urls) {
@@ -212,6 +214,7 @@ export const plugin: PluginDefinition = {
                 });
 
               zipfile.end();
+              zipFiles.push(zipName);
             } catch (e: any) {
               _ctx.toast.show({ message: `Failed to import: ${e.message}` });  
               reject2(false);
@@ -245,6 +248,9 @@ export const plugin: PluginDefinition = {
             websocketRequests: [],
           },
         };
+        zipFiles.forEach(a => {
+          fs.unlink(a, (err) => _ctx.toast.show({message: `Unable to delete: ${a}: ${err}`}));
+        })
         return resolve(response);
       });
       await myPromise.then(() => {
