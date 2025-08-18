@@ -268,7 +268,7 @@ export const plugin: PluginDefinition = {
 function modifyUrl(url: string, replacements: Array<{ key: string; value: string }>): string {
   let modifiedUrl = url;
   replacements.forEach((replacement) => {
-    modifiedUrl = modifiedUrl.replace(new RegExp(replacement.value, 'g'), `${replacement.key}`);
+    modifiedUrl = modifiedUrl.replace(new RegExp(replacement.value, 'g'), "${[ " + replacement.key + " ]}");
   });
   return modifiedUrl.replace("?WSDL", "");
 }

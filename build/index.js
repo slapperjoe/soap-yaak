@@ -65742,7 +65742,7 @@ var plugin = {
                         bodyType: "text/xml",
                         authentication: {},
                         authenticationType: null,
-                        headers: [],
+                        headers: [{ name: "Content-Type", value: "application/soap+xml", enabled: true }],
                         description: req.description
                       });
                       requestCount++;
@@ -65779,7 +65779,7 @@ var plugin = {
                 id: `en_${createHash2(importFile.workspaceId)}`,
                 model: "environment",
                 base: false,
-                name: "GlobalX Variables",
+                name: "Global Variables",
                 variables: (importFile.urlReplace || []).map((a) => {
                   return { name: a.key, value: a.value };
                 }) || [],
@@ -65793,7 +65793,8 @@ var plugin = {
           }
         };
         zipFiles.forEach((a) => {
-          import_fs.default.unlink(a, (err) => _ctx.toast.show({ message: `Unable to delete: ${a}: ${err}` }));
+          import_fs.default.unlink(a, (err) => {
+          });
         });
         return resolve(response);
       });
@@ -65808,7 +65809,7 @@ var plugin = {
 function modifyUrl(url, replacements) {
   let modifiedUrl = url;
   replacements.forEach((replacement) => {
-    modifiedUrl = modifiedUrl.replace(new RegExp(replacement.value, "g"), `{{${replacement.key}}}`);
+    modifiedUrl = modifiedUrl.replace(new RegExp(replacement.value, "g"), "${[ " + replacement.key + " ]}");
   });
   return modifiedUrl.replace("?WSDL", "");
 }
@@ -65878,7 +65879,7 @@ plugin.importer?.onImport(
   {
     "text": `{
       "urls": [
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceReferral?WSDL"
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/AssessmentReferral?WSDL"
       ],
       "name": "Demo Workspace",
       "workspaceId": "testwrkspc",
