@@ -51,6 +51,7 @@ exports.plugin = {
             let folderCount = 0;
             let requests = [];
             let requestCount = 0;
+            let zipFiles = [];
             const myPromise = new Promise(async (resolve, reject) => {
                 let idx = 0;
                 for (const url of importFile?.urls) {
@@ -150,6 +151,7 @@ exports.plugin = {
                                 }
                             });
                             zipfile.end();
+                            zipFiles.push(zipName);
                         }
                         catch (e) {
                             _ctx.toast.show({ message: `Failed to import: ${e.message}` });
@@ -185,6 +187,9 @@ exports.plugin = {
                         websocketRequests: [],
                     },
                 };
+                zipFiles.forEach(a => {
+                    fs_1.default.unlink(a, (err) => _ctx.toast.show({ message: `Unable to delete: ${a}: ${err}` }));
+                });
                 return resolve(response);
             });
             await myPromise.then(() => {
@@ -267,8 +272,7 @@ exports.plugin.importer?.onImport({
 {
     "text": `{
       "urls": [
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/OrganisationApplications?WSDL",
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceReferral?WSDL"
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/AssessmentReferral?WSDL"
       ],
       "name": "Demo Workspace",
       "workspaceId": "testwrkspc",
@@ -278,5 +282,4 @@ exports.plugin.importer?.onImport({
       }]
     }`,
 });
-//SCHEMA%2FAgedCare.Models%2FResources%2FInternal%2FSchemas%2FCommon%2FCommon.Header
 //# sourceMappingURL=index.js.map

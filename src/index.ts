@@ -198,7 +198,7 @@ export const plugin: PluginDefinition = {
                           bodyType: "text/xml",
                           authentication: {},
                           authenticationType: null,
-                          headers: [],
+                          headers: [{name: "Content-Type", value: "application/soap+xml", enabled: true}],
                           description: req.description,
                         });
                         requestCount++;
@@ -235,7 +235,7 @@ export const plugin: PluginDefinition = {
                 id: `en_${createHash(importFile.workspaceId)}`,
                 model: "environment",
                 base: false,
-                name: "GlobalX Variables",
+                name: "Global Variables",
                 variables: (importFile.urlReplace || []).map((a) => {
                   return { name: a.key, value: a.value };
                 }) || [],
@@ -249,7 +249,9 @@ export const plugin: PluginDefinition = {
           },
         };
         zipFiles.forEach(a => {
-          fs.unlink(a, (err) => _ctx.toast.show({message: `Unable to delete: ${a}: ${err}`}));
+          fs.unlink(a, (err) => {
+            //_ctx.toast.show({message: `Unable to delete: ${a}: ${err}`
+          });
         })
         return resolve(response);
       });
@@ -266,7 +268,7 @@ export const plugin: PluginDefinition = {
 function modifyUrl(url: string, replacements: Array<{ key: string; value: string }>): string {
   let modifiedUrl = url;
   replacements.forEach((replacement) => {
-    modifiedUrl = modifiedUrl.replace(new RegExp(replacement.value, 'g'), `{{${replacement.key}}}`);
+    modifiedUrl = modifiedUrl.replace(new RegExp(replacement.value, 'g'), `${replacement.key}`);
   });
   return modifiedUrl.replace("?WSDL", "");
 }
@@ -356,7 +358,7 @@ plugin.importer?.onImport(
   {
     "text": `{
       "urls": [
-        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/ServiceReferral?WSDL"
+        "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/AssessmentReferral?WSDL"
       ],
       "name": "Demo Workspace",
       "workspaceId": "testwrkspc",

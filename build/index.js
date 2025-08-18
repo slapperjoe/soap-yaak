@@ -65653,6 +65653,7 @@ var plugin = {
       let folderCount = 0;
       let requests = [];
       let requestCount = 0;
+      let zipFiles = [];
       const myPromise = new Promise(async (resolve, reject) => {
         let idx = 0;
         for (const url of importFile?.urls) {
@@ -65756,6 +65757,7 @@ var plugin = {
                 }
               });
               zipfile.end();
+              zipFiles.push(zipName);
             } catch (e) {
               _ctx.toast.show({ message: `Failed to import: ${e.message}` });
               reject2(false);
@@ -65790,6 +65792,9 @@ var plugin = {
             websocketRequests: []
           }
         };
+        zipFiles.forEach((a) => {
+          import_fs.default.unlink(a, (err) => _ctx.toast.show({ message: `Unable to delete: ${a}: ${err}` }));
+        });
         return resolve(response);
       });
       await myPromise.then(() => {
@@ -65931,4 +65936,3 @@ q/q.js:
 sax/lib/sax.js:
   (*! http://mths.be/fromcodepoint v0.1.0 by @mathias *)
 */
-                                                                                        

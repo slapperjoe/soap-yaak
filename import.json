@@ -15,5 +15,9 @@
         "http://acg-r02-dit-osb.myac.gov.au:80/AgedCare/SupportPlan?WSDL"
     ],
     "name": "ACG Workspace",
-    "workspaceId": "ACGWrkSpce"
+    "workspaceId": "ACGWrkSpce",
+    "urlReplace":[{
+          "key": "ENV",
+          "value": "dit"        
+      }]
 }
